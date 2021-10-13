@@ -22,9 +22,9 @@ In the project **"People flow analysis in a vaccination centre"** we analyse the
 In order to run the code, you need few things.
 
 ```bash
-  - the pickle file which contains the tracer data from motion miners
-  - the layout.json file from motion miners
-  - the code from this repository
+  - pickle file which contains the tracer data from motion miners
+  - layout.json file from motion miners
+  - code from this repository
 ``` 
 ## How to Setup and Run
 
