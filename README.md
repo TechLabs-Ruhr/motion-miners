@@ -21,11 +21,10 @@ In the project **"People flow analysis in a vaccination centre"** we analyse the
 
 In order to run the code, you need few things.
 
-```bash
   - pickle file which contains the tracer data from motion miners
   - layout.json file from motion miners
   - code from this repository
-``` 
+
 ## How to Setup and Run
 
 In order to setup the project, please proceed as follows:
