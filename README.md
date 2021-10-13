@@ -12,7 +12,7 @@ By the end you should have filled out the following:
 5. **Authors:** Please add all of you and link your respective GitHub profile and other information if you want to. This part if completely up to you.
 6. If you are done filling out the information below, please **delete this TODO Section** to keep your project readme clean for other people to get to know more about your project.
 -->
-# Motion Miners: "People flow analysis in a vaccination center"
+# MotionMiners: "People flow analysis in a vaccination center"
 
 This project was developed in collaboration with Motionminers GmbH, who provided us with the data for the analysis.
 In the project **"People flow analysis in a vaccination centre"** we analyse the flow times of people who have received a vaccination in the vaccination centre. Through the code you have the possibility to discover bottlenecks in the system and to clarify them through a visual representation
