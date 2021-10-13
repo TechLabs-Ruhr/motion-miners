@@ -39,15 +39,9 @@ In order to setup the project, please proceed as follows:
 
 ## Examples
 
-You can see a brief overview of how to use the main functionality below
+You can see a brief overview of what you get if you analyse one tracer dataset.
 
-```javascript
-import Component from 'my-project'
-
-function App() {
-  return <Component />
-}
-```
+![Plot output of one tracer dataset](images/3_Example.png )
 
   
 ## Roadmap
