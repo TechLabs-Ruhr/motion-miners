@@ -36,12 +36,6 @@ In order to setup the project, please proceed as follows:
   3. **Run** the main.py file using your IDE or your terminal.
   
 
-
-After successful installation use the following command to run the project:
-
-```bash
-  npm run
-```
 ## Examples
 
 You can see a brief overview of how to use the main functionality below
