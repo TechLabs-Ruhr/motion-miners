@@ -30,12 +30,12 @@ In order to run the code, you need few things.
 
 In order to setup the project, please proceed as follows:
 
-```bash
+
   1. **Clone** the repository to your local Pc
   2. **Change** the folder path in **main.py** (Userinput) so that the path leads to the necessary files on your local PC. The **main.py** file is in the src folder.
   3. **Run** the main.py file using your IDE or your terminal.
   
-```
+
 
 After successful installation use the following command to run the project:
 
