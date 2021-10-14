@@ -253,11 +253,15 @@ def get_max_signal_values(tracer_df):
     location = []
     for row in max_df.itertuples():
         if (
-            row[1] >= -100
+            row[1] >= -65 #think about the value , possible or not ??
         ):  # if the maximum value is over -65 (adjust the value?) then the tracer is located in the responding region
             location.append(row[3][0])
         else:  # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
+            if len(location) ==0:
+                continue 
             location.append(location[-1])
+            
+
 
     max_df["location_of_tracer"] = location
 
