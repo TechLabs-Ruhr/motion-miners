@@ -8,7 +8,8 @@ import defined_side_functions as sf
 
 # change the path to where you stored tracerdata, and layoutfile on your computer
 layout_path = r"C:\Users\RR\Documents\TechLabs\6_Motion_Miner\2_Code\3_Data\layout.json"
-tracer_folder_path = r"C:\Users\RR\Documents\TechLabs\6_Motion_Miner\2_Code\2_Data"
+# tracer_folder_path = r"C:\Users\RR\Documents\TechLabs\6_Motion_Miner\2_Code\2_Data"
+tracer_folder_path = r"C:\Users\RR\Desktop\Neuer Ordner (3)"
 #---------------------------------------------------------------------------------------#
 
 
