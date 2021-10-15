@@ -258,10 +258,13 @@ def get_max_signal_values(tracer_df):
             location.append(row[3][0])
         else:  # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
             if len(location) ==0:
-                continue 
-            location.append(location[-1])
+                location.append(0) #set the first value manuell to zero to the wait not in use value
+            else:
+                location.append(location[-1])
             
 
+    print("location",len(location))
+    print(max_df.size)
 
     max_df["location_of_tracer"] = location
 
@@ -537,5 +540,6 @@ def plot_time_analyse(person_dict_list,filename):
     #fulltime
     for index, value in enumerate(region8_times):
         plt.text(index+1-0.2, region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value+1 , str(round(region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value,2))+"min", color='k', fontweight='bold')
-
-    plt.show()
+    
+    plt.savefig(filename.split(".")[0])
+    # plt.show()
