@@ -35,6 +35,7 @@ In order to setup the project, please proceed as follows:
      The **main.py** file is in the src folder.
   3. **Run** the main.py file using your IDE or your terminal.
   
+Alternatively, you can run the jupyter notebook in Google Colabotory.
 
 ## Examples
 
