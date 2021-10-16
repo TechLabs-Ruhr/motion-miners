@@ -3,6 +3,7 @@ import numpy as np
 import json
 import pickle
 import seaborn as sns
+import datetime
 from matplotlib import pyplot as plt
 
 import constant
@@ -166,6 +167,9 @@ def extract_rssi_to_df(tracer_data_path):
     # extract rssi_arr key to numpy.array
     rssi_arr = df_file["rssi_arr"]
 
+    # extract the time stamp
+    timestamp = df_file["timestamp"]
+
     # set -inf equal to 0 (datacleaning)
     rssi_arr[rssi_arr == -np.Inf] = np.nan
 
@@ -196,7 +200,7 @@ def extract_rssi_to_df(tracer_data_path):
     df_rssi_arr = pd.DataFrame(data=mod_rssi_arr, columns=colum_names)
     df = df_rssi_arr.set_index("timeline[s]")
 
-    return df
+    return df,timestamp
 
 
 def add_flow_as_multi_index(tracer_df, beacon_flow):
@@ -261,10 +265,6 @@ def get_max_signal_values(tracer_df):
                 location.append(0) #set the first value manuell to zero to the wait not in use value
             else:
                 location.append(location[-1])
-            
-
-    print("location",len(location))
-    print(max_df.size)
 
     max_df["location_of_tracer"] = location
 
@@ -406,7 +406,7 @@ def region_to_number(value):
 
 
 
-def time_analyse(max_signal_df):
+def time_analyse(max_signal_df,timestamp):
 
     ##Step 1)
     #sclicing max_signal_df into possible persons by separate zeros
@@ -438,11 +438,14 @@ def time_analyse(max_signal_df):
     #get the time values
     vacc_time=[]
     person_dict_list=[]
+    persondaytime_list=[]
     for person in person_df:
         #get the full times the person need for a vaccination
         time_min=(subdataframe[person]["time"].iloc[-1]-subdataframe[person]["time"].iloc[0])/60
         vacc_time.append(time_min)
-
+        persondaytime_begin=timestamp+ datetime.timedelta(seconds=subdataframe[person]["time"].iloc[0])
+        persondaytime_end=timestamp+ datetime.timedelta(seconds=subdataframe[person]["time"].iloc[-1])
+        persondaytime_list.append(persondaytime_begin.strftime("%H:%M:%S") +" - "+persondaytime_end.strftime("%H:%M:%S"))
         #calculate the time a person need for every region 
         region=[1,3,5,6,8]
         row=0
@@ -465,9 +468,9 @@ def time_analyse(max_signal_df):
         for key in person:
             person[key]=sum(person[key])
 
-    return person_dict_list
+    return person_dict_list,persondaytime_list
 
-def plot_time_analyse(person_dict_list,filename):
+def plot_time_analyse(person_dict_list,filename,timestamp,timelist):
     
     ##Step 1)
     #seperate the time values for each region
@@ -512,8 +515,13 @@ def plot_time_analyse(person_dict_list,filename):
 
     ax.set_ylabel("time[min]")
     ax.set_xlabel("persons")
-    ax.set_title(str(filename))
-    plt.xticks(range(1,len(region1_times)+1))
+
+    #title
+    weekday_date= timestamp.strftime("%A,%d.%m.%Y")
+    ax.set_title(weekday_date+"\n"+str(filename))
+
+    # x-axis title , time from start to end of each person
+    plt.xticks(range(1,len(region1_times)+1),timelist)
     ax.legend()
 
     ##setting the time text in the plot
@@ -541,5 +549,5 @@ def plot_time_analyse(person_dict_list,filename):
     for index, value in enumerate(region8_times):
         plt.text(index+1-0.2, region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value+1 , str(round(region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value,2))+"min", color='k', fontweight='bold')
     
-    plt.savefig(filename.split(".")[0])
-    # plt.show()
+    # plt.savefig(filename.split(".")[0])
+    plt.show()

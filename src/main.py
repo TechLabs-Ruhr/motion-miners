@@ -9,7 +9,7 @@ import defined_side_functions as sf
 # change the path to where you stored tracerdata, and layoutfile on your computer
 layout_path = r"C:\Users\RR\Documents\TechLabs\6_Motion_Miner\2_Code\3_Data\layout.json"
 # tracer_folder_path = r"C:\Users\RR\Documents\TechLabs\6_Motion_Miner\2_Code\2_Data"
-tracer_folder_path = r"C:\Users\RR\Desktop\Motion_Miner_DATA"
+tracer_folder_path = r"C:\Users\RR\Desktop\motionminer_testdata"
 # tracer_folder_path = r"C:\Users\RR\Desktop\Neuer Ordner (3)"
 #---------------------------------------------------------------------------------------#
 
@@ -36,7 +36,7 @@ for filename in os.listdir(tracer_folder_path):
     # print("\n------------\n")
     # print("\nBeacon vs Flow:\n\n", beacon_flow)
 
-    tracer = sf.extract_rssi_to_df(tracer_path)
+    tracer,time = sf.extract_rssi_to_df(tracer_path)
     # print("\n------------\n")
     # print("\nTracer data:\n\n", tracer)
 
@@ -48,11 +48,11 @@ for filename in os.listdir(tracer_folder_path):
     # print("\n------------\n")
     # print("\nfiltered tracer data:\n\n",max_signal_df)
 
-    person_dict_list=sf.time_analyse(max_signal_df)
+    person_dict_list,timelist=sf.time_analyse(max_signal_df,time)
     # print("\n------------\n")
     # print("\nTotall Region times for Persons:\n\n",*person_dict_list,sep="\n")
 
-    sf.plot_time_analyse(person_dict_list,filename)
+    sf.plot_time_analyse(person_dict_list,filename,time,timelist)
 
 #---------------------------------------------------------------------------------------#
 
