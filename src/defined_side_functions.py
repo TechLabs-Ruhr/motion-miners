@@ -200,7 +200,7 @@ def extract_rssi_to_df(tracer_data_path):
     df_rssi_arr = pd.DataFrame(data=mod_rssi_arr, columns=colum_names)
     df = df_rssi_arr.set_index("timeline[s]")
 
-    return df,timestamp
+    return df, timestamp
 
 
 def add_flow_as_multi_index(tracer_df, beacon_flow):
@@ -257,12 +257,14 @@ def get_max_signal_values(tracer_df):
     location = []
     for row in max_df.itertuples():
         if (
-            row[1] >= -65 #think about the value , possible or not ??
+            row[1] >= -65  # think about the value , possible or not ??
         ):  # if the maximum value is over -65 (adjust the value?) then the tracer is located in the responding region
             location.append(row[3][0])
         else:  # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
-            if len(location) ==0:
-                location.append(0) #set the first value manuell to zero to the wait not in use value
+            if len(location) == 0:
+                location.append(
+                    0
+                )  # set the first value manuell to zero to the wait not in use value
             else:
                 location.append(location[-1])
 
@@ -405,149 +407,246 @@ def region_to_number(value):
     return region_name
 
 
-
-def time_analyse(max_signal_df,timestamp):
+def time_analyse(max_signal_df, timestamp):
 
     ##Step 1)
-    #sclicing max_signal_df into possible persons by separate zeros
-    flag=True
-    slicing_index=[]
+    # sclicing max_signal_df into possible persons by separate zeros
+    flag = True
+    slicing_index = []
     for index, row in max_signal_df.iterrows():
         if flag == True:
-            if row["location_of_tracer"]==0:
+            if row["location_of_tracer"] == 0:
                 slicing_index.append(index)
-                flag=False
+                flag = False
         else:
-            if row["location_of_tracer"]!=0:
-                flag=True
-    
+            if row["location_of_tracer"] != 0:
+                flag = True
+
     ##Step 2)
-    #set a subdataframe for every possible person and filter the "real" person
-    subdataframe=[]
-    person_df=[]
-    for i in range(len(slicing_index)-1):
-        subdataframe.append("sub_df_"+str(i))
-        subdataframe[i]=max_signal_df.loc[slicing_index[i]:(slicing_index[i+1]-1)]
-        #filter the subdataframe to possible persons who enter the regions [0,1,3,5,6,8]
-        if np.all(np.unique(subdataframe[i]["location_of_tracer"]) == [0,1,3,5,6,8]):
+    # set a subdataframe for every possible person and filter the "real" person
+    subdataframe = []
+    person_df = []
+    for i in range(len(slicing_index) - 1):
+        subdataframe.append("sub_df_" + str(i))
+        subdataframe[i] = max_signal_df.loc[
+            slicing_index[i] : (slicing_index[i + 1] - 1)
+        ]
+        # filter the subdataframe to possible persons who enter the regions [0,1,3,5,6,8]
+        if np.all(
+            np.unique(subdataframe[i]["location_of_tracer"]) == [0, 1, 3, 5, 6, 8]
+        ):
             person_df.append(i)
-            #filter the zero region values out
-            subdataframe[i]=subdataframe[i][subdataframe[i].location_of_tracer !=0]
+            # filter the zero region values out
+            subdataframe[i] = subdataframe[i][subdataframe[i].location_of_tracer != 0]
 
     ##Step 3)
-    #get the time values
-    vacc_time=[]
-    person_dict_list=[]
-    persondaytime_list=[]
+    # get the time values
+    vacc_time = []
+    person_dict_list = []
+    persondaytime_list = []
     for person in person_df:
-        #get the full times the person need for a vaccination
-        time_min=(subdataframe[person]["time"].iloc[-1]-subdataframe[person]["time"].iloc[0])/60
+        # get the full times the person need for a vaccination
+        time_min = (
+            subdataframe[person]["time"].iloc[-1] - subdataframe[person]["time"].iloc[0]
+        ) / 60
         vacc_time.append(time_min)
-        persondaytime_begin=timestamp+ datetime.timedelta(seconds=subdataframe[person]["time"].iloc[0])
-        persondaytime_end=timestamp+ datetime.timedelta(seconds=subdataframe[person]["time"].iloc[-1])
-        persondaytime_list.append(persondaytime_begin.strftime("%H:%M:%S") +" - "+persondaytime_end.strftime("%H:%M:%S"))
-        #calculate the time a person need for every region 
-        region=[1,3,5,6,8]
-        row=0
-        temp=[]
-        dic_times={}
+        persondaytime_begin = timestamp + datetime.timedelta(
+            seconds=subdataframe[person]["time"].iloc[0]
+        )
+        persondaytime_end = timestamp + datetime.timedelta(
+            seconds=subdataframe[person]["time"].iloc[-1]
+        )
+        persondaytime_list.append(
+            persondaytime_begin.strftime("%H:%M:%S")
+            + " - "
+            + persondaytime_end.strftime("%H:%M:%S")
+        )
+        # calculate the time a person need for every region
+        region = [1, 3, 5, 6, 8]
+        row = 0
+        temp = []
+        dic_times = {}
         while row < subdataframe[person].shape[0]:
             if subdataframe[person]["location_of_tracer"].iloc[row] in region:
-                region_nr=subdataframe[person]["location_of_tracer"].iloc[row]
-                while row < subdataframe[person].shape[0] and subdataframe[person]["location_of_tracer"].iloc[row]==region_nr:
+                region_nr = subdataframe[person]["location_of_tracer"].iloc[row]
+                while (
+                    row < subdataframe[person].shape[0]
+                    and subdataframe[person]["location_of_tracer"].iloc[row]
+                    == region_nr
+                ):
                     temp.append(subdataframe[person]["time"].iloc[row])
                     row = row + 1
-                dic_times.setdefault(region_nr,[]).append((temp[-1]-temp[0])/60)
-                temp=[]
-            
+                dic_times.setdefault(region_nr, []).append((temp[-1] - temp[0]) / 60)
+                temp = []
+
         person_dict_list.append(dic_times)
-    
+
     ##Step 4)
-    #filter the rush signals by sum up the region times to one representative value
+    # filter the rush signals by sum up the region times to one representative value
     for person in person_dict_list:
         for key in person:
-            person[key]=sum(person[key])
+            person[key] = sum(person[key])
 
-    return person_dict_list,persondaytime_list
+    return person_dict_list, persondaytime_list
 
-def plot_time_analyse(person_dict_list,filename,timestamp,timelist):
-    
+
+def plot_time_analyse(person_dict_list, filename, timestamp, timelist):
+
     ##Step 1)
-    #seperate the time values for each region
-    region1_times=[]
-    region3_times=[]
-    region5_times=[]
-    region6_times=[]
-    region8_times=[]
+    # seperate the time values for each region
+    region1_times = []
+    region3_times = []
+    region5_times = []
+    region6_times = []
+    region8_times = []
 
     for person in person_dict_list:
         for key in person:
-            if key ==1:
+            if key == 1:
                 region1_times.append(person[key])
-            elif key ==3:
+            elif key == 3:
                 region3_times.append(person[key])
-            elif key ==5:
+            elif key == 5:
                 region5_times.append(person[key])
-            elif key ==6:
+            elif key == 6:
                 region6_times.append(person[key])
-            elif key ==8:
+            elif key == 8:
                 region8_times.append(person[key])
             else:
-                print("Error, something went wrong!\n",
-                        "Check Line sidefunction , time_analyse")
+                print(
+                    "Error, something went wrong!\n",
+                    "Check Line sidefunction , time_analyse",
+                )
 
     ##Step2)
-    #making a stack bar plot
-    labels=range(1,len(region1_times)+1)
+    # making a stack bar plot
+    labels = range(1, len(region1_times) + 1)
     width = 0.8
     fig, ax = plt.subplots()
 
-    #setting the bars for the plot
-    ax.bar(labels, region1_times, width, label='region 1')
-    ax.bar(labels, region3_times, width, bottom=region1_times,
-        label='region3')
-    ax.bar(labels, region5_times, width, bottom=np.array(region3_times)+np.array(region1_times),
-        label='region5')
-    ax.bar(labels, region6_times, width, bottom=np.array(region3_times)+np.array(region1_times)+np.array(region5_times),
-        label='region6')
-    ax.bar(labels, region8_times, width, bottom=np.array(region3_times)+np.array(region1_times)+np.array(region5_times)+np.array(region6_times),
-        label='region8')
+    # setting the bars for the plot
+    ax.bar(labels, region1_times, width, label="region 1")
+    ax.bar(labels, region3_times, width, bottom=region1_times, label="region3")
+    ax.bar(
+        labels,
+        region5_times,
+        width,
+        bottom=np.array(region3_times) + np.array(region1_times),
+        label="region5",
+    )
+    ax.bar(
+        labels,
+        region6_times,
+        width,
+        bottom=np.array(region3_times)
+        + np.array(region1_times)
+        + np.array(region5_times),
+        label="region6",
+    )
+    ax.bar(
+        labels,
+        region8_times,
+        width,
+        bottom=np.array(region3_times)
+        + np.array(region1_times)
+        + np.array(region5_times)
+        + np.array(region6_times),
+        label="region8",
+    )
 
     ax.set_ylabel("time[min]")
     ax.set_xlabel("persons")
 
-    #title
-    weekday_date= timestamp.strftime("%A,%d.%m.%Y")
-    ax.set_title(weekday_date+"\n"+str(filename))
+    # title
+    weekday_date = timestamp.strftime("%A,%d.%m.%Y")
+    ax.set_title(weekday_date + "\n" + str(filename))
 
     # x-axis title , time from start to end of each person
-    plt.xticks(range(1,len(region1_times)+1),timelist)
+    plt.xticks(range(1, len(region1_times) + 1), timelist)
     ax.legend()
 
     ##setting the time text in the plot
-    #region1
+    # region1
     for index, value in enumerate(region1_times):
-        plt.text(index+1-0.2, value/2 , str(round(value,2))+"min", color='k', fontweight='bold')
+        plt.text(
+            index + 1 - 0.2,
+            value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
 
-    #region3
+    # region3
     for index, value in enumerate(region3_times):
-        plt.text(index+1-0.2, region1_times[index]+value/2 , str(round(value,2))+"min", color='k', fontweight='bold')
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index] + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
 
-    #region5
+    # region5
     for index, value in enumerate(region5_times):
-        plt.text(index+1-0.2, region1_times[index]+region3_times[index]+value/2 , str(round(value,2))+"min", color='k', fontweight='bold')
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index] + region3_times[index] + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
 
-    #region6
+    # region6
     for index, value in enumerate(region6_times):
-        plt.text(index+1-0.2, region1_times[index]+region3_times[index]+region5_times[index]+value/2 , str(round(value,2))+"min", color='k', fontweight='bold')
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region3_times[index]
+            + region5_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
 
-    #region8
+    # region8
     for index, value in enumerate(region8_times):
-        plt.text(index+1-0.2, region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value/2 , str(round(value,2))+"min", color='k', fontweight='bold')
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region3_times[index]
+            + region5_times[index]
+            + region6_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
 
-    #fulltime
+    # fulltime
     for index, value in enumerate(region8_times):
-        plt.text(index+1-0.2, region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value+1 , str(round(region1_times[index]+region3_times[index]+region5_times[index]+region6_times[index]+value,2))+"min", color='k', fontweight='bold')
-    
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region3_times[index]
+            + region5_times[index]
+            + region6_times[index]
+            + value
+            + 1,
+            str(
+                round(
+                    region1_times[index]
+                    + region3_times[index]
+                    + region5_times[index]
+                    + region6_times[index]
+                    + value,
+                    2,
+                )
+            )
+            + "min",
+            color="k",
+            fontweight="bold",
+        )
+
     # plt.savefig(filename.split(".")[0])
     plt.show()
