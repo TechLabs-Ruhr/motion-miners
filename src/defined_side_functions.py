@@ -4,6 +4,7 @@ import json
 import pickle
 import seaborn as sns
 import datetime
+import math
 from matplotlib import pyplot as plt
 
 import constant
@@ -451,10 +452,10 @@ def time_analyse(max_signal_df, timestamp):
         ) / 60
         vacc_time.append(time_min)
         persondaytime_begin = timestamp + datetime.timedelta(
-            seconds=subdataframe[person]["time"].iloc[0]
+            seconds=int(subdataframe[person]["time"].iloc[0])
         )
         persondaytime_end = timestamp + datetime.timedelta(
-            seconds=subdataframe[person]["time"].iloc[-1]
+            seconds=int(subdataframe[person]["time"].iloc[-1])
         )
         persondaytime_list.append(
             persondaytime_begin.strftime("%H:%M:%S")
@@ -650,3 +651,49 @@ def plot_time_analyse(person_dict_list, filename, timestamp, timelist):
 
     # plt.savefig(filename.split(".")[0])
     plt.show()
+
+
+def merge_timeline(tracer_df):
+    old_index_list = tracer_df.index.tolist()
+    round_index_list = [math.floor(num) for num in old_index_list]
+    new_tracer_df = tracer_df.copy()
+    new_tracer_df.index = round_index_list
+    new_tracer_df = new_tracer_df.groupby(level=0).mean()
+
+    return new_tracer_df
+
+
+def determine_flow_based_on_n_max_signal(tracer_df, beacon_flow, n_max_values=3):
+    tracer_df.columns = tracer_df.columns.map(int)
+
+    # list beacons that were not used
+    not_used_beacons = []
+    for beacon in tracer_df.columns.values:
+        if beacon not in list(beacon_flow["beacon_id"]):
+            not_used_beacons.append(beacon)
+
+    # delete beacon_columns that were not used
+    new_tracer_df = tracer_df.drop(not_used_beacons, axis=1)
+
+    # alter column name of tracer data with flow_id instead of beacon_id
+    beacon_flow_softed_by_beacon = beacon_flow.sort_values(by="beacon_id")
+    new_tracer_df.columns = beacon_flow_softed_by_beacon["flow_id"]
+
+    location_of_tracer = []
+    for index, row in new_tracer_df.iterrows():
+        flow_has_max_values = row.nlargest(n_max_values, "all")
+        grouped_by_flow = flow_has_max_values.groupby(level=0).count()
+        if grouped_by_flow.empty:
+            if len(location_of_tracer) == 0:
+                location_of_tracer.append(0)
+            else:
+                location_of_tracer.append(location_of_tracer[-1])
+        else:
+            flow_has_max_count = grouped_by_flow.idxmax()
+            location_of_tracer.append(flow_has_max_count)
+
+    new_df = pd.DataFrame()
+    new_df["time"] = new_tracer_df.index
+    new_df["location_of_tracer"] = location_of_tracer
+
+    return new_df
