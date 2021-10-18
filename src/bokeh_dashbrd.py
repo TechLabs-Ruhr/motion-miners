@@ -3,16 +3,21 @@ import pandas as pd
 import numpy as np
 
 from bokeh.io import show, curdoc
-from bokeh.plotting import figure
+from bokeh.plotting import figure, output_file
 from bokeh.layouts import row, column
 from bokeh.models import Select
-from bokeh.resources import INLINE
+from bokeh.themes import built_in_themes
+
+# from bokeh.resources import INLINE
 from bokeh.models.widgets import Div, Panel, Tabs
 
 # imports for analysis
 import defined_side_functions as sf
 import pickle
 
+# theme
+output_file("dark_minimal.html")
+curdoc().theme = "dark_minimal"
 
 # datafiles
 layout_path = r"layout.json"
@@ -157,60 +162,108 @@ reg1.vbar(
     line_color="tomato",
     alpha=0.9,
 )
-tab1 = Panel(child=reg1, title="time spent in region 1")
+tab1 = Panel(child=reg1, title="region 1")
 
 reg3 = figure(plot_width=500, plot_height=400,)
 reg3.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region_3"],
-    fill_color="tomato",
-    line_color="tomato",
+    fill_color="gold",
+    line_color="gold",
     alpha=0.9,
 )
-tab2 = Panel(child=reg3, title="time spent in region 3")
+tab2 = Panel(child=reg3, title="region 3")
 
 reg5 = figure(plot_width=500, plot_height=400,)
 reg5.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region_5"],
-    fill_color="tomato",
-    line_color="tomato",
+    fill_color="slateblue",
+    line_color="slateblue",
     alpha=0.9,
 )
-tab3 = Panel(child=reg5, title="time spent in region 5")
+tab3 = Panel(child=reg5, title="region 5")
 
 reg6 = figure(plot_width=500, plot_height=400,)
 reg6.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region_6"],
-    fill_color="tomato",
-    line_color="tomato",
+    fill_color="forestgreen",
+    line_color="forestgreen",
     alpha=0.9,
 )
-tab4 = Panel(child=reg6, title="time spent in region 6")
+tab4 = Panel(child=reg6, title="region 6")
 
 reg8 = figure(plot_width=500, plot_height=400,)
 reg8.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region_8"],
-    fill_color="tomato",
-    line_color="tomato",
+    fill_color="darkturquoise",
+    line_color="darkturquoise",
     alpha=0.9,
 )
-tab5 = Panel(child=reg8, title="time spent in region 8")
+tab5 = Panel(child=reg8, title="region 8")
 
 tabs = Tabs(tabs=[tab1, tab2, tab3, tab4, tab5])
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
+# -----------------------Stacked bar chart--------------------------------------
+
+num_ppl_str = ["1", "2", "3", "4", "5", "6"]
+num_people = list(range(1, len(region1_times) + 1))
+regions = ["region_1", "region_3", "region_5", "region_6", "region_8"]
+
+region_time_dict = {
+    "persons": num_ppl_str,
+    "region_1": region1_times,
+    "region_3": region3_times,
+    "region_5": region5_times,
+    "region_6": region6_times,
+    "region_8": region8_times,
+}
+
+# print(region_time_dict)
+
+cols = ["tomato", "gold", "slateblue", "forestgreen", "darkturquoise"]
+
+stacked_bar = figure(
+    x_range=num_ppl_str,
+    title="Time in minutes for the vaccination process",
+    plot_width=500,
+    plot_height=450,
+)
+stacked_bar.vbar_stack(
+    regions,
+    x="persons",
+    source=region_time_dict,
+    color=cols,
+    width=0.5,
+    legend_label=regions,
+)
+# ------------------------------------------------------------------------------
+
+# ----------------------------------Text element--------------------------------
+expl = Div(
+    text="""<b>Description</b> <br> 
+    Region 1: Pre-checkin <br>
+    Region 3: Checkin main <br>
+    Region 5: Doctor table <br>
+    Region 6: Vaccination <br>
+    Region 8: Checkout <br>
+    """,
+    width=500,
+    height=100,
+)
 
 # -----------------------------Combine to dashboard-----------------------------
-title = Div(text='<h1 style="text-align: center">Project Dashboard</h1>')
+title = Div(text='<h1 style="text-align: center">Demo dashboard</h1>')
 
 # layout_dash = column(title, line_chart, row(bar_chart, tabs))
-layout_dash = column(title, line_chart, row(tabs))
+layout_dash = column(title, line_chart, row(tabs, stacked_bar), expl)
 
 show(layout_dash)
 
