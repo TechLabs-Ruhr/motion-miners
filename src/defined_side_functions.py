@@ -674,17 +674,25 @@ def merge_timeline(tracer_df):
 def determine_flow_based_on_n_max_signal(tracer_df, beacon_flow, n_max_values=3):
     tracer_df.columns = tracer_df.columns.map(int)
 
-    # list beacons that were not used
+    # delete beacon columns in tracer data that don't exist in flow map
     not_used_beacons = []
     for beacon in tracer_df.columns.values:
         if beacon not in list(beacon_flow["beacon_id"]):
             not_used_beacons.append(beacon)
 
-    # delete beacon_columns that were not used
     new_tracer_df = tracer_df.drop(not_used_beacons, axis=1)
 
+
+    # delete beacon rows in beacon flow that don't exist in tracer data
+    beacons_not_exist_in_data = []
+    for index, row_beacon in beacon_flow.iterrows():
+        if row_beacon["beacon_id"] not in list(tracer_df.columns.values):
+            beacons_not_exist_in_data.append(row_beacon["beacon_id"])
+
+    new_beacon_flow = beacon_flow.copy().drop(beacon_flow[beacon_flow.beacon_id.isin(beacons_not_exist_in_data)].index, axis=0)
+
     # alter column name of tracer data with flow_id instead of beacon_id
-    beacon_flow_softed_by_beacon = beacon_flow.sort_values(by="beacon_id")
+    beacon_flow_softed_by_beacon = new_beacon_flow.sort_values(by="beacon_id")
     new_tracer_df.columns = beacon_flow_softed_by_beacon["flow_id"]
 
     location_of_tracer = []
