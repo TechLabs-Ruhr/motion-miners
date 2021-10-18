@@ -225,12 +225,20 @@ def add_flow_as_multi_index(tracer_df, beacon_flow):
 
     # list beacons that were not used
     not_used_beacons = []
+    other_not_used_beacons = []
     for beacon in tracer_df.columns.values:
         if beacon not in list(beacon_flow["beacon_id"]):
             not_used_beacons.append(beacon)
 
-    # delete beacon_columns that were not used
+    for index, row_beacon in beacon_flow.iterrows():
+        if row_beacon["beacon_id"] not in list(tracer_df.columns.values):
+            other_not_used_beacons.append(row_beacon["beacon_id"])
+
+
+    # delete beacon_columns that were not used (in both dfs)
     new_tracer_df = tracer_df.drop(not_used_beacons, axis=1)
+    beacon_flow = beacon_flow.drop(beacon_flow[beacon_flow.beacon_id.isin(other_not_used_beacons)].index, axis=0)
+
 
     # get tuples of flow + beacon in order to use pd.MultiIndex.from_tuples
     multi_col_flow_tuple = list(beacon_flow.to_records(index=False))
