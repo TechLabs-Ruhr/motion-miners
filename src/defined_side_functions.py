@@ -713,3 +713,69 @@ def determine_flow_based_on_n_max_signal(tracer_df, beacon_flow, n_max_values=3)
     new_df["location_of_tracer"] = location_of_tracer
 
     return new_df
+
+
+def add_timestamps_column(tracer_df, max_signal_df, start_timestamp):
+    # adds timestamps to dfs for dashboard charts
+
+    timestamps_series = pd.Series(
+        pd.date_range(start_timestamp, periods=len(tracer_df), freq="0.1S")
+    )
+
+    tracer_with_timestamp = tracer_df.copy()
+    tracer_with_timestamp = tracer_with_timestamp.assign(
+        timestamp=timestamps_series.values
+    )
+
+    max_with_timestamp = max_signal_df.copy()
+    max_with_timestamp = max_with_timestamp.assign(timestamp=timestamps_series.values)
+
+    return tracer_with_timestamp, max_with_timestamp
+
+
+def get_indvl_region_times(person_dict_list):
+
+    region1_times = []
+    region3_times = []
+    region5_times = []
+    region6_times = []
+    region8_times = []
+
+    for person in person_dict_list:
+        for key in person:
+            if key == 1:
+                region1_times.append(person[key])
+            elif key == 3:
+                region3_times.append(person[key])
+            elif key == 5:
+                region5_times.append(person[key])
+            elif key == 6:
+                region6_times.append(person[key])
+            elif key == 8:
+                region8_times.append(person[key])
+            else:
+                print(
+                    "Error, something went wrong!\n",
+                    "Check Line sidefunction , time_analyse",
+                )
+
+    region_time_df = pd.DataFrame(
+        list(
+            zip(
+                region1_times,
+                region3_times,
+                region5_times,
+                region6_times,
+                region8_times,
+            )
+        ),
+        columns=[
+            "region1_times",
+            "region3_times",
+            "region5_times",
+            "region6_times",
+            "region8_times",
+        ],
+    )
+
+    return region_time_df
