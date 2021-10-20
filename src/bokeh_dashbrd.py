@@ -1,14 +1,12 @@
-# imports for bokeh
 import pandas as pd
 import numpy as np
 
+# imports for bokeh
 from bokeh.io import show, curdoc
 from bokeh.plotting import figure, output_file
 from bokeh.layouts import row, column
-from bokeh.models import Select
+from bokeh.models import Select, ColumnDataSource, LabelSet
 from bokeh.themes import built_in_themes
-
-# from bokeh.resources import INLINE
 from bokeh.models.widgets import Div, Panel, Tabs
 
 # imports for analysis
@@ -51,20 +49,12 @@ max_signal_df = sf.get_max_signal_values(flow_tracer)
 # print("\nfiltered tracer data:\n\n",max_signal_df)
 
 person_dict_list, timelist = sf.time_analyse(max_signal_df, time)
-# ----------------------------------------------------------------------
 
-# -------------------------Add timestamps to dfs------------------------
-# @TODO move to defined_side_functions
-
-##Add timestamps to tracer_df and max_signal_df
-timestamps_series = pd.Series(pd.date_range(time, periods=len(tracer), freq="0.1S"))
-
-time_tracer = tracer.copy()
-time_tracer = time_tracer.assign(time=timestamps_series.values)
-
-time_max_value = max_signal_df.copy()
-time_max_value = time_max_value.assign(time=timestamps_series.values)
-
+# ---------------NEW
+tracer_timestamps, max_timestamps = sf.add_timestamps_column(
+    tracer, max_signal_df, time
+)
+region_times_df = sf.get_indvl_region_times(person_dict_list)
 # ----------------------------------------------------------------------
 
 # ---------------------------Bokeh linechart----------------------------
@@ -76,12 +66,12 @@ line_chart = figure(
 )
 
 line_chart.line(
-    x="time",
+    x="timestamp",
     y="location_of_tracer",
     line_width=0.5,
     line_color="dodgerblue",
     legend_label="route",
-    source=time_max_value,
+    source=max_timestamps,
 )
 
 line_chart.xaxis.axis_label = "Time"
@@ -90,149 +80,182 @@ line_chart.yaxis.axis_label = "Region"
 line_chart.legend.location = "top_left"
 # ----------------------------------------------------------------------
 
-# ------------------part from plot_time_analysis_function---------------
-region1_times = []
-region3_times = []
-region5_times = []
-region6_times = []
-region8_times = []
-
-for person in person_dict_list:
-    for key in person:
-        if key == 1:
-            region1_times.append(person[key])
-        elif key == 3:
-            region3_times.append(person[key])
-        elif key == 5:
-            region5_times.append(person[key])
-        elif key == 6:
-            region6_times.append(person[key])
-        elif key == 8:
-            region8_times.append(person[key])
-        else:
-            print(
-                "Error, something went wrong!\n",
-                "Check Line sidefunction , time_analyse",
-            )
-
-region_times_df = pd.DataFrame(
-    list(
-        zip(region1_times, region3_times, region5_times, region6_times, region8_times)
-    ),
-    columns=["region_1", "region_3", "region_5", "region_6", "region_8"],
-)
-
-# --------------------------Bokeh bar chart (one region)---------------------
-bar_chart = figure(
-    plot_width=500,
-    plot_height=400,
-    title="Time in minutes that persons spent in region 1",
-)
-
-bar_chart.vbar(
-    x=[1, 2, 3, 4, 5, 6],
-    width=0.9,
-    top=region_times_df["region_1"],
-    fill_color="tomato",
-    line_color="tomato",
-    alpha=0.9,
-)
-
-bar_chart.xaxis.axis_label = "indivual person"
-bar_chart.yaxis.axis_label = "time in minutes"
-
-bar_chart.xaxis.ticker = [1, 2, 3, 4, 5, 6]
-bar_chart.xaxis.major_label_overrides = {
-    1: "Person 1",
-    2: "Person 2",
-    3: "Person 3",
-    4: "Person 4",
-    5: "Person 5",
-    6: "Person 6",
-}
-# ------------------------------------------------------------------------------
 
 # ---------------------------------All bar charts in tabs----------------------------
-reg1 = figure(plot_width=500, plot_height=400,)
+new_region_times_df = region_times_df.copy()
+new_region_times_df["num_people"] = list(
+    range(1, len(region_times_df["region1_times"]) + 1)
+)
+new_source = ColumnDataSource(round(new_region_times_df, 2))
+
+reg1 = figure(plot_width=500, plot_height=420,)
+reg1.yaxis.axis_label = "time in minutes"
 reg1.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
-    top=region_times_df["region_1"],
+    top=region_times_df["region1_times"],
     fill_color="tomato",
     line_color="tomato",
     alpha=0.9,
 )
-tab1 = Panel(child=reg1, title="region 1")
+label1 = LabelSet(
+    x="num_people",
+    y="region1_times",
+    text="region1_times",
+    x_offset=0,
+    y_offset=-20,
+    text_font_size="15px",
+    text_color="black",
+    source=new_source,
+    text_align="center",
+    level="glyph",
+    render_mode="canvas",
+)
+reg1.add_layout(label1)
 
-reg3 = figure(plot_width=500, plot_height=400,)
+tab1 = Panel(child=reg1, title="Region 1")
+
+
+reg3 = figure(plot_width=500, plot_height=420,)
+reg3.yaxis.axis_label = "time in minutes"
 reg3.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
-    top=region_times_df["region_3"],
+    top=region_times_df["region3_times"],
     fill_color="gold",
     line_color="gold",
     alpha=0.9,
 )
-tab2 = Panel(child=reg3, title="region 3")
+label3 = LabelSet(
+    x="num_people",
+    y="region3_times",
+    text="region3_times",
+    x_offset=0,
+    y_offset=-20,
+    text_font_size="15px",
+    text_color="black",
+    source=new_source,
+    text_align="center",
+    level="glyph",
+    render_mode="canvas",
+)
+reg3.add_layout(label3)
 
-reg5 = figure(plot_width=500, plot_height=400,)
+tab2 = Panel(child=reg3, title="Region 3")
+
+
+reg5 = figure(plot_width=500, plot_height=420,)
+reg5.yaxis.axis_label = "time in minutes"
 reg5.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
-    top=region_times_df["region_5"],
+    top=region_times_df["region5_times"],
     fill_color="slateblue",
     line_color="slateblue",
     alpha=0.9,
 )
-tab3 = Panel(child=reg5, title="region 5")
+label5 = LabelSet(
+    x="num_people",
+    y="region5_times",
+    text="region5_times",
+    x_offset=0,
+    y_offset=-20,
+    text_font_size="15px",
+    text_color="black",
+    source=new_source,
+    text_align="center",
+    level="glyph",
+    render_mode="canvas",
+)
+reg5.add_layout(label5)
 
-reg6 = figure(plot_width=500, plot_height=400,)
+tab3 = Panel(child=reg5, title="Region 5")
+
+
+reg6 = figure(plot_width=500, plot_height=420,)
+reg6.yaxis.axis_label = "time in minutes"
 reg6.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
-    top=region_times_df["region_6"],
+    top=region_times_df["region6_times"],
     fill_color="forestgreen",
     line_color="forestgreen",
     alpha=0.9,
 )
-tab4 = Panel(child=reg6, title="region 6")
+label6 = LabelSet(
+    x="num_people",
+    y="region6_times",
+    text="region6_times",
+    x_offset=0,
+    y_offset=-20,
+    text_font_size="15px",
+    text_color="black",
+    source=new_source,
+    text_align="center",
+    level="glyph",
+    render_mode="canvas",
+)
+reg6.add_layout(label6)
 
-reg8 = figure(plot_width=500, plot_height=400,)
+tab4 = Panel(child=reg6, title="Region 6")
+
+
+reg8 = figure(plot_width=500, plot_height=420,)
+reg8.yaxis.axis_label = "time in minutes"
 reg8.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
-    top=region_times_df["region_8"],
+    top=region_times_df["region8_times"],
     fill_color="darkturquoise",
     line_color="darkturquoise",
     alpha=0.9,
 )
-tab5 = Panel(child=reg8, title="region 8")
+label8 = LabelSet(
+    x="num_people",
+    y="region8_times",
+    text="region8_times",
+    x_offset=0,
+    y_offset=-20,
+    text_font_size="15px",
+    text_color="black",
+    source=new_source,
+    text_align="center",
+    level="glyph",
+    render_mode="canvas",
+)
+reg8.add_layout(label8)
+
+tab5 = Panel(child=reg8, title="Region 8")
 
 tabs = Tabs(tabs=[tab1, tab2, tab3, tab4, tab5])
 # ------------------------------------------------------------------------------
 
 # -----------------------Stacked bar chart--------------------------------------
 
-num_ppl_str = ["1", "2", "3", "4", "5", "6"]
-num_people = list(range(1, len(region1_times) + 1))
-regions = ["region_1", "region_3", "region_5", "region_6", "region_8"]
+num_ppl_str = list(map(str, range(1, len(region_times_df["region1_times"]) + 1)))
+num_people = list(range(1, len(region_times_df["region1_times"]) + 1))
+regions = [
+    "region_1",
+    "region_3",
+    "region_5",
+    "region_6",
+    "region_8",
+]
 
 region_time_dict = {
     "persons": num_ppl_str,
-    "region_1": region1_times,
-    "region_3": region3_times,
-    "region_5": region5_times,
-    "region_6": region6_times,
-    "region_8": region8_times,
+    "region_1": region_times_df["region1_times"],
+    "region_3": region_times_df["region3_times"],
+    "region_5": region_times_df["region5_times"],
+    "region_6": region_times_df["region6_times"],
+    "region_8": region_times_df["region8_times"],
 }
-
-# print(region_time_dict)
 
 cols = ["tomato", "gold", "slateblue", "forestgreen", "darkturquoise"]
 
 stacked_bar = figure(
     x_range=num_ppl_str,
-    title="Time in minutes for the vaccination process",
+    title="Amount of time for the vaccination process",
     plot_width=500,
     plot_height=450,
 )
@@ -244,7 +267,20 @@ stacked_bar.vbar_stack(
     width=0.5,
     legend_label=regions,
 )
+stacked_bar.xaxis.axis_label = "person"
+stacked_bar.yaxis.axis_label = "time in minutes"
 # ------------------------------------------------------------------------------
+
+
+# ----------------------------------Drop bar-----------------------------------
+# example
+drop_bar = Select(
+    title="Dimension",
+    options=[("1st vaccination"), ("2nd vaccination")],
+    value="1st vaccination",
+)
+# ------------------------------------------------------------------------------
+
 
 # ----------------------------------Text element--------------------------------
 expl = Div(
@@ -259,11 +295,26 @@ expl = Div(
     height=100,
 )
 
+addition = Div(
+    text="""<b>Key facts</b> <br> 
+    Throughput time: ... <br>
+    Waiting time for each region: ... <br>
+    First vaccination: .... <br>
+    Second vaccination: .... <br>
+    <I> In a table? </I> <br>
+    <I> Add map of vaccination center? </I>
+    """,
+    width=500,
+    height=100,
+)
+
 # -----------------------------Combine to dashboard-----------------------------
 title = Div(text='<h1 style="text-align: center">Demo dashboard</h1>')
 
 # layout_dash = column(title, line_chart, row(bar_chart, tabs))
-layout_dash = column(title, line_chart, row(tabs, stacked_bar), expl)
+layout_dash = column(
+    title, row(expl, addition), drop_bar, line_chart, row(stacked_bar, tabs)
+)
 
 show(layout_dash)
 
