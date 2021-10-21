@@ -234,11 +234,11 @@ def add_flow_as_multi_index(tracer_df, beacon_flow):
         if row_beacon["beacon_id"] not in list(tracer_df.columns.values):
             other_not_used_beacons.append(row_beacon["beacon_id"])
 
-
     # delete beacon_columns that were not used (in both dfs)
     new_tracer_df = tracer_df.drop(not_used_beacons, axis=1)
-    beacon_flow = beacon_flow.drop(beacon_flow[beacon_flow.beacon_id.isin(other_not_used_beacons)].index, axis=0)
-
+    beacon_flow = beacon_flow.drop(
+        beacon_flow[beacon_flow.beacon_id.isin(other_not_used_beacons)].index, axis=0
+    )
 
     # get tuples of flow + beacon in order to use pd.MultiIndex.from_tuples
     multi_col_flow_tuple = list(beacon_flow.to_records(index=False))
@@ -499,9 +499,21 @@ def time_analyse(max_signal_df, timestamp):
     return person_dict_list, persondaytime_list
 
 
-def plot_time_analyse(person_dict_list, filename, timestamp, timelist):
+def extract_time_spent_in_region(person_dict_list):
+    """
+    Get the time spent in each region
 
-    ##Step 1)
+    Parameters
+    ----------
+    person_dict_list: list
+        regions people have passed during vaccination lifecycle
+
+    Returns
+    -------
+    dict
+        time spent in each region
+    """
+
     # seperate the time values for each region
     region1_times = []
     region3_times = []
@@ -522,10 +534,88 @@ def plot_time_analyse(person_dict_list, filename, timestamp, timelist):
             elif key == 8:
                 region8_times.append(person[key])
             else:
-                print(
-                    "Error, something went wrong!\n",
-                    "Check Line sidefunction , time_analyse",
+                raise RuntimeError(
+                    "There is region key different from [1, 3, 5, 6, 8]. Unknown region %d",
+                    key,
                 )
+
+    return {
+        "region1": region1_times,
+        "region3": region3_times,
+        "region5": region5_times,
+        "region6": region6_times,
+        "region8": region8_times,
+    }
+
+
+def is_second_shot(region_times, regions, thresholds, require_all=False):
+    """
+    Check if tracer is used for 2nd vaccination
+
+    Parameters
+    ----------
+    region_times: dict
+        the time spent in each region
+
+    regions: list
+        the regions will be validated
+
+    thresholds: list
+        the amount of time (in minutes) in a region which is the limit for 2nd vaccination
+
+    require_all: boolean
+        whether all regions must under threshold or not
+
+    Returns
+    -------
+    boolean
+
+    """
+
+    region_times_df = pd.DataFrame.from_dict(region_times)
+    region_times_df.columns = [1, 3, 5, 6, 8]
+
+    selected_regions = region_times_df.loc[:, regions]
+
+    selected_regions_median = selected_regions.median(axis="index")
+
+    compared = selected_regions_median < thresholds
+
+    if (require_all):
+        return compared.all()
+    else:
+        return compared.any()
+
+
+def plot_time_analyse(region_times, filename, timestamp, timelist):
+    """
+    Visualize time spent in each region
+
+    Parameters
+    ----------
+    region_times: dict
+        the time spent in each region
+
+    filename: string
+        the name of dataset which is processed
+
+    timestamp: string
+        the time that dataset started recording
+
+    timelist
+
+    Returns
+    -------
+    void
+
+    """
+
+    ##Step 1)
+    region1_times = region_times["region1"]
+    region3_times = region_times["region3"]
+    region5_times = region_times["region5"]
+    region6_times = region_times["region6"]
+    region8_times = region_times["region8"]
 
     ##Step2)
     # making a stack bar plot
@@ -682,14 +772,15 @@ def determine_flow_based_on_n_max_signal(tracer_df, beacon_flow, n_max_values=3)
 
     new_tracer_df = tracer_df.drop(not_used_beacons, axis=1)
 
-
     # delete beacon rows in beacon flow that don't exist in tracer data
     beacons_not_exist_in_data = []
     for index, row_beacon in beacon_flow.iterrows():
         if row_beacon["beacon_id"] not in list(tracer_df.columns.values):
             beacons_not_exist_in_data.append(row_beacon["beacon_id"])
 
-    new_beacon_flow = beacon_flow.copy().drop(beacon_flow[beacon_flow.beacon_id.isin(beacons_not_exist_in_data)].index, axis=0)
+    new_beacon_flow = beacon_flow.copy().drop(
+        beacon_flow[beacon_flow.beacon_id.isin(beacons_not_exist_in_data)].index, axis=0
+    )
 
     # alter column name of tracer data with flow_id instead of beacon_id
     beacon_flow_softed_by_beacon = new_beacon_flow.sort_values(by="beacon_id")

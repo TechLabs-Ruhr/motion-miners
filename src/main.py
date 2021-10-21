@@ -1,5 +1,6 @@
-import seaborn as sns
 import os
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 import defined_side_functions as sf
 
@@ -28,6 +29,8 @@ beacon_flow = sf.get_flow_of_beacon(layout)
 # print("\n------------\n")
 # print("\nBeacon vs Flow:\n\n", beacon_flow)
 
+second_shot_tracers = []
+
 # loop over the files in the tracer_folder_path
 for filename in os.listdir(tracer_folder_path):
     tracer_path = os.path.join(tracer_folder_path, filename)
@@ -50,7 +53,15 @@ for filename in os.listdir(tracer_folder_path):
     # print("\n------------\n")
     # print("\nTotall Region times for Persons:\n\n",*person_dict_list,sep="\n")
 
-    sf.plot_time_analyse(person_dict_list, filename, time, timelist)
+    region_times = sf.extract_time_spent_in_region(person_dict_list)
+
+    if (sf.is_second_shot(region_times, [3], [5])):
+        second_shot_tracers.append(filename)
+
+    sf.plot_time_analyse(region_times, filename, time, timelist)
+
+print("\n------------\n")
+print("\nTracers for second shot\n\n", second_shot_tracers)
 
 # ---------------------------------------------------------------------------------------#
 
@@ -59,8 +70,8 @@ for filename in os.listdir(tracer_folder_path):
 
 # plot the subdataframe from a person
 # sns.relplot(
-#     data=subdataframe[1],
-#     x=max_signal_df.time,
+#     data=max_signal_df,
+#     x="time",
 #     y="location_of_tracer",
 #     kind="line",
 #     height=10,
