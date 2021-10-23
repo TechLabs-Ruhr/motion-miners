@@ -700,7 +700,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region7_times),
         label="region8",
     )
-      ax.bar(
+    ax.bar(
         labels,
         region9_times,
         width,
@@ -1040,7 +1040,7 @@ def timeplate_filler(person_dict_list,person_counter,pers_timesection_counter,Ti
             person_counter=person_counter+1
             pers_timesection_counter[8]=pers_timesection_counter[8]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,8,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("17:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("16:00:00","%H:%M:%S"):
