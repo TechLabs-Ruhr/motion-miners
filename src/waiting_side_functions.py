@@ -252,12 +252,15 @@ def get_max_signal_values(tracer_df):
         tracer_df.idxmax(axis=1)
     )  # corresponding beacon id and region number of the max value
 
+    # max_signal = max(max_df["max_signal"]) - 30
+    # mean_signal = np.mean(max_df["max_signal"]) + 10
+
     location = []
     for row in max_df.itertuples():
         current_high = row[3]
         if len(location) == 0:
             location.append(0)
-        elif row[1] >= -75:
+        elif row[1] >= -65:
             location.append(row[3][0])
         else:
             if location[-1] == 1:
@@ -266,6 +269,8 @@ def get_max_signal_values(tracer_df):
                 location.append(4)
             elif location[-1] == 6:
                 location.append(7)
+            elif location[-1] == 8:
+                location.append(9)
             else:
                 location.append(location[-1])
 
@@ -435,7 +440,7 @@ def time_analyse(max_signal_df, timestamp):
         # filter the subdataframe to possible persons who enter the regions [0,1,3,5,6,8] + waiting
         if np.all(
             np.unique(subdataframe[i]["location_of_tracer"])
-            == [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         ):
             person_df.append(i)
             # filter the zero region values out
@@ -464,7 +469,7 @@ def time_analyse(max_signal_df, timestamp):
             + persondaytime_end.strftime("%H:%M:%S")
         )
         # calculate the time a person need for every region
-        region = [1, 2, 3, 4, 5, 6, 7, 8]
+        region = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         row = 0
         temp = []
         dic_times = {}
@@ -514,6 +519,7 @@ def extract_time_spent_in_region(person_dict_list):
     region6_times = []
     region7_times = []
     region8_times = []
+    region9_times = []
 
     for person in person_dict_list:
         for key in person:
@@ -533,6 +539,8 @@ def extract_time_spent_in_region(person_dict_list):
                 region7_times.append(person[key])
             elif key == 8:
                 region8_times.append(person[key])
+            elif key == 9:
+                region9_times.append(person[key])
             else:
                 raise RuntimeError(
                     "There is region key different from [1, 3, 5, 6, 8] and waiting rooms. Unknown region %d",
@@ -548,6 +556,7 @@ def extract_time_spent_in_region(person_dict_list):
         "region6": region6_times,
         "region7": region7_times,
         "region8": region8_times,
+        "region9": region9_times,
     }
 
 
@@ -570,7 +579,7 @@ def is_second_shot(region_times, regions, thresholds, require_all=False):
     """
 
     region_times_df = pd.DataFrame.from_dict(region_times)
-    region_times_df.columns = [1, 2, 3, 4, 5, 6, 7, 8]
+    region_times_df.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     selected_regions = region_times_df.loc[:, regions]
 
@@ -584,6 +593,7 @@ def is_second_shot(region_times, regions, thresholds, require_all=False):
         return compared.any()
 
 
+##### NOT WORKING AND REGION 9 IS MISSING
 def plot_time_analyse(region_times, filename, timestamp, timelist):
     """
     Visualize time spent in each region
@@ -610,6 +620,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
     region6_times = region_times["region6"]
     region7_times = region_times["region7"]
     region8_times = region_times["region8"]
+    region9_times = region_times["region9"]
 
     ##Step2)
     # making a stack bar plot
@@ -854,6 +865,21 @@ def add_timestamps_column(tracer_df, max_signal_df, start_timestamp):
     return tracer_with_timestamp, max_with_timestamp
 
 
+def add_single_timestamps_column(tracer_df, start_timestamp):
+    # adds timestamps to dfs for dashboard charts
+
+    timestamps_series = pd.Series(
+        pd.date_range(start_timestamp, periods=len(tracer_df), freq="0.1S")
+    )
+
+    tracer_with_timestamp = tracer_df.copy()
+    tracer_with_timestamp = tracer_with_timestamp.assign(
+        timestamp=timestamps_series.values
+    )
+
+    return tracer_with_timestamp
+
+
 def get_indvl_region_times(person_dict_list):
 
     region1_times = []
@@ -864,6 +890,7 @@ def get_indvl_region_times(person_dict_list):
     region6_times = []
     region7_times = []
     region8_times = []
+    region9_times = []
 
     for person in person_dict_list:
         for key in person:
@@ -883,6 +910,8 @@ def get_indvl_region_times(person_dict_list):
                 region7_times.append(person[key])
             elif key == 8:
                 region8_times.append(person[key])
+            elif key == 9:
+                region9_times.append(person[key])
             else:
                 raise RuntimeError(
                     "There is region key different from [1, 3, 5, 6, 8] and waiting rooms. Unknown region %d",
@@ -900,6 +929,7 @@ def get_indvl_region_times(person_dict_list):
                 region6_times,
                 region7_times,
                 region8_times,
+                region9_times,
             )
         ),
         columns=[
@@ -911,6 +941,7 @@ def get_indvl_region_times(person_dict_list):
             "region6_times",
             "region7_times",
             "region8_times",
+            "region9_times",
         ],
     )
 
