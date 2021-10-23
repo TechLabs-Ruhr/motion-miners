@@ -465,7 +465,7 @@ def time_analyse(max_signal_df, timestamp):
         )
         persondaytime_list.append(
             persondaytime_begin.strftime("%H:%M:%S")
-            + " - "
+            + " -\n"
             + persondaytime_end.strftime("%H:%M:%S")
         )
         # calculate the time a person need for every region
@@ -889,8 +889,8 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
 
     fig =plt.gcf()
     fig.set_size_inches(15,12)
-    fig.savefig(filename.split(".")[0],dpi=300)
-    #plt.show()
+    # fig.savefig(filename.split(".")[0],dpi=300)
+    plt.show()
 
 
 def merge_timeline(tracer_df):
@@ -1080,8 +1080,8 @@ def timeplate_filler(person_dict_list,person_counter,pers_timesection_counter,Ti
                     Timeplate=timeplate_binder(key,2,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("11:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("10:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
             pers_timesection_counter[3]=pers_timesection_counter[3]+1
-            pers_4=pers_4+1
             for key in person:
                 if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,3,Timeplate,person)
