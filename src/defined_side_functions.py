@@ -487,14 +487,19 @@ def time_analyse(max_signal_df, timestamp):
                     row = row + 1
                 dic_times.setdefault(region_nr, []).append((temp[-1] - temp[0]) / 60)
                 temp = []
-
+        #add a time key to the dict 
+        dic_times["time"]=[persondaytime_begin.strftime("%H:%M:%S"),persondaytime_end.strftime("%H:%M:%S")]
         person_dict_list.append(dic_times)
 
     ##Step 4)
     # filter the rush signals by sum up the region times to one representative value
     for person in person_dict_list:
         for key in person:
-            person[key] = sum(person[key])
+            if key =="time":
+                continue
+            else:
+                person[key] = sum(person[key])
+            
 
     return person_dict_list, persondaytime_list
 
@@ -533,6 +538,8 @@ def extract_time_spent_in_region(person_dict_list):
                 region6_times.append(person[key])
             elif key == 8:
                 region8_times.append(person[key])
+            elif key =="time":
+                continue
             else:
                 raise RuntimeError(
                     "There is region key different from [1, 3, 5, 6, 8]. Unknown region %d",
@@ -747,8 +754,10 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
             fontweight="bold",
         )
 
-    # plt.savefig(filename.split(".")[0])
-    plt.show()
+    fig =plt.gcf()
+    fig.set_size_inches(15,12)
+    fig.savefig(filename.split(".")[0],dpi=300)
+    # plt.show()
 
 
 def merge_timeline(tracer_df):
@@ -870,3 +879,117 @@ def get_indvl_region_times(person_dict_list):
     )
 
     return region_time_df
+
+
+def timeplate_binder(key,timesection,Timeplate,person):
+    transfer_list= [0,0,0,1,0,2,3,0,4]
+    Timeplate[transfer_list[key],timesection]=Timeplate[transfer_list[key],timesection] + person[key]
+    return Timeplate
+
+
+def timeplate_filler(person_dict_list,person_counter,pers_timesection_counter,Timeplate):
+    for person in person_dict_list:
+
+        if datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("08:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[0]=pers_timesection_counter[0]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,0,Timeplate,person)
+                
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("09:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("08:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[1]=pers_timesection_counter[1]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,1,Timeplate,person)
+        
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("10:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("09:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[2]=pers_timesection_counter[2]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,2,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("11:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("10:00:00","%H:%M:%S"):
+            pers_timesection_counter[3]=pers_timesection_counter[3]+1
+            pers_4=pers_4+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,3,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("12:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("11:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[4]=pers_timesection_counter[4]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,4,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("13:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("12:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[5]=pers_timesection_counter[5]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,5,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("14:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("13:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[6]=pers_timesection_counter[6]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,6,Timeplate,person)
+        
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("15:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("14:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[7]=pers_timesection_counter[7]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,7,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("16:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("15:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[8]=pers_timesection_counter[8]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,8,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("17:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("16:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[9]=pers_timesection_counter[9]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,9,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("18:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("17:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[10]=pers_timesection_counter[10]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,10,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("19:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("18:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[11]=pers_timesection_counter[11]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,11,Timeplate,person)
+
+        elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("19:00:00","%H:%M:%S"):
+            person_counter=person_counter+1
+            pers_timesection_counter[12]=pers_timesection_counter[12]+1
+            for key in person:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                    Timeplate=timeplate_binder(key,12,Timeplate,person)
+
+    return person_counter,pers_timesection_counter,Timeplate
+
+
+def piechart(Timeplate):
+    labels = 'Pre-checkin', 'Checkin main', 'Doctor table', 'Vaccination' ,"Checkout"
+    sizes = np.sum(Timeplate,axis=1)
+    fig1, ax1 = plt.subplots()
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
+    shadow=True, startangle=90)
+    ax1.axis('equal')
+
+    plt.savefig("Number of person that are analysed")
