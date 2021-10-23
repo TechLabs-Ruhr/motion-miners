@@ -636,14 +636,14 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
     fig, ax = plt.subplots()
 
     # setting the bars for the plot
-    ax.bar(labels, region1_times, width, label="region 1")
-    ax.bar(labels, region2_times, width, bottom=region1_times, label="region2")
+    ax.bar(labels, region1_times, width, label="Pre-checkin")
+    ax.bar(labels, region2_times, width, bottom=region1_times, label="Waiting Checkin")
     ax.bar(
         labels,
         region3_times,
         width,
         bottom=np.array(region1_times) + np.array(region2_times),
-        label="region3",
+        label="Checkin main",
     )
     ax.bar(
         labels,
@@ -652,7 +652,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         bottom=np.array(region1_times)
         + np.array(region2_times)
         + np.array(region3_times),
-        label="region4",
+        label="Waiting I",
     )
     ax.bar(
         labels,
@@ -662,7 +662,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region2_times)
         + np.array(region3_times)
         + np.array(region4_times),
-        label="region5",
+        label="Doctor table",
     )
     ax.bar(
         labels,
@@ -673,7 +673,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region3_times)
         + np.array(region4_times)
         + np.array(region5_times),
-        label="region6",
+        label="Vaccination",
     )
     ax.bar(
         labels,
@@ -685,7 +685,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region4_times)
         + np.array(region5_times)
         + np.array(region6_times),
-        label="region7",
+        label="Waiting II",
     )
     ax.bar(
         labels,
@@ -698,7 +698,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region5_times)
         + np.array(region6_times)
         + np.array(region7_times),
-        label="region8",
+        label="Checkout",
     )
     ax.bar(
         labels,
@@ -712,7 +712,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
         + np.array(region6_times)
         + np.array(region7_times)
         + np.array(region8_times),
-        label="region9",
+        label="Waiting III",
     )  
 
     ax.set_ylabel("time[min]")
@@ -737,32 +737,64 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
             fontweight="bold",
         )
 
-    # region3
+    # region2
+    for index, value in enumerate(region2_times):
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
+
+    #region3
     for index, value in enumerate(region3_times):
         plt.text(
             index + 1 - 0.2,
-            region1_times[index] + value / 2,
+            region1_times[index]
+            + region2_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
+    
+    #region4
+    for index, value in enumerate(region4_times):
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region2_times[index]
+            + region3_times[index]
+            + value / 2,
             str(round(value, 2)) + "min",
             color="k",
             fontweight="bold",
         )
 
-    # region5
+    #region5
     for index, value in enumerate(region5_times):
         plt.text(
             index + 1 - 0.2,
-            region1_times[index] + region3_times[index] + value / 2,
+            region1_times[index]
+            + region2_times[index]
+            + region3_times[index]
+            + region4_times[index]
+            + value / 2,
             str(round(value, 2)) + "min",
             color="k",
             fontweight="bold",
         )
-
-    # region6
+    
+    #region6
     for index, value in enumerate(region6_times):
         plt.text(
             index + 1 - 0.2,
             region1_times[index]
+            + region2_times[index]
             + region3_times[index]
+            + region4_times[index]
             + region5_times[index]
             + value / 2,
             str(round(value, 2)) + "min",
@@ -770,12 +802,14 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
             fontweight="bold",
         )
 
-    # region8
-    for index, value in enumerate(region8_times):
+    #region7
+    for index, value in enumerate(region7_times):
         plt.text(
             index + 1 - 0.2,
             region1_times[index]
+            + region2_times[index]
             + region3_times[index]
+            + region4_times[index]
             + region5_times[index]
             + region6_times[index]
             + value / 2,
@@ -783,24 +817,68 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
             color="k",
             fontweight="bold",
         )
+
+    #region8
+    for index, value in enumerate(region8_times):
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region2_times[index]
+            + region3_times[index]
+            + region4_times[index]
+            + region5_times[index]
+            + region6_times[index]
+            + region7_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
+
+    #region9
+    for index, value in enumerate(region9_times):
+        plt.text(
+            index + 1 - 0.2,
+            region1_times[index]
+            + region2_times[index]
+            + region3_times[index]
+            + region4_times[index]
+            + region5_times[index]
+            + region6_times[index]
+            + region7_times[index]
+            + region8_times[index]
+            + value / 2,
+            str(round(value, 2)) + "min",
+            color="k",
+            fontweight="bold",
+        )
+
 
     # fulltime
-    for index, value in enumerate(region8_times):
+    for index, value in enumerate(region9_times):
         plt.text(
             index + 1 - 0.2,
             region1_times[index]
+            + region2_times[index]
             + region3_times[index]
+            + region4_times[index]
             + region5_times[index]
             + region6_times[index]
+            + region7_times[index]
+            + region8_times[index]
             + value
             + 1,
             str(
                 round(
                     region1_times[index]
+                    + region2_times[index]
                     + region3_times[index]
+                    + region4_times[index]
                     + region5_times[index]
                     + region6_times[index]
-                    + value,
+                    + region7_times[index]
+                    + region8_times[index]
+                     + value,
                     2,
                 )
             )
