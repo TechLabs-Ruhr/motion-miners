@@ -4,26 +4,26 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-import defined_side_functions as sf
+import waiting_side_functions as sf
 
 
 # ----------------------------------Userinput-------------------------------------------#
 
 # change the path to where you stored tracerdata, and layoutfile on your computer
 layout_path = r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motion-miners\data\layout.json"
-tracer_folder_path = r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motionminer_testdata_temp"
+tracer_folder_path = (
+    r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motionminer_testdata_temp"
+)
 # ---------------------------------------------------------------------------------------#
 
 
 # ----------------------------------initial Values---------------------------------------#
 
-Timeplate=np.zeros(shape=(5,13))
-person_counter=0
-pers_timesection_counter=[0]*13
+Timeplate = np.zeros(shape=(9, 13))
+person_counter = 0
+pers_timesection_counter = [0] * 13
 second_shot_tracers = []
 # ---------------------------------------------------------------------------------------#
-
-
 
 
 # ----------------------------------maincode---------------------------------------------#
@@ -65,10 +65,12 @@ for filename in os.listdir(tracer_folder_path):
 
     region_times = sf.extract_time_spent_in_region(person_dict_list)
 
-    if (sf.is_second_shot(region_times, [3], [5])):
+    if sf.is_second_shot(region_times, [3], [5]):
         second_shot_tracers.append(filename)
 
-    person_counter,pers_timesection_counter,Timeplate = sf.timeplate_filler(person_dict_list,person_counter,pers_timesection_counter,Timeplate)
+    person_counter, pers_timesection_counter, Timeplate = sf.timeplate_filler(
+        person_dict_list, person_counter, pers_timesection_counter, Timeplate
+    )
 
     sf.plot_time_analyse(region_times, filename, time, timelist)
 
@@ -77,14 +79,14 @@ print("\n------------\n")
 print("\nTracers for second shot\n\n", second_shot_tracers)
 
 print("\n------------\n")
-print("\nNumber of person that are analysed:\n\n",person_counter)
+print("\nNumber of person that are analysed:\n\n", person_counter)
 
 print("\n------------\n")
-print("\nNumber of Person for every timesection:\n\n",pers_timesection_counter)
+print("\nNumber of Person for every timesection:\n\n", pers_timesection_counter)
 
 sf.piechart(Timeplate)
 
-np.savetxt("allTimeplate.csv",Timeplate,delimiter=";",fmt='%1.2f')
+np.savetxt("allTimeplate.csv", Timeplate, delimiter=";", fmt="%1.2f")
 
 # ---------------------------------------------------------------------------------------#
 

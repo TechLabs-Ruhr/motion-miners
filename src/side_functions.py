@@ -17,12 +17,10 @@ This py document contains all side functions that are used in main.py
 def create_mapped_layout(layout_path):
     """
     Create a completed layout has beacons, regions and flows
-
     Parameters
     ----------
     layout_path: str
         path of layout file
-
     Returns
     -------
     pandas.DataFrame
@@ -75,12 +73,10 @@ def create_mapped_layout(layout_path):
 def get_flow_of_beacon(layout):
     """
     Determine the flow id which beacon belongs to
-
     Parameters
     ----------
     layout: pandas.DataFrame
         the layout has mapped beacons, regions and flows
-
     Returns
     -------
     pandas.DataFrame
@@ -121,14 +117,11 @@ def signal_to_m_converter(dataframe, dbm="4(dBm)"):
         for i in range(0, lenght_power):
             if choose_power[i] >= value and value >= choose_power[i + 1]:
                 meter_value = (
-                    df_txpower["Distance(m)"][i + 1] - df_txpower["Distance(m)"][i]
-                ) / (choose_power[i + 1] - choose_power[i]) * (
-                    value - choose_power[i]
-                ) + df_txpower[
-                    "Distance(m)"
-                ][
-                    i
-                ]
+                    (df_txpower["Distance(m)"][i + 1] - df_txpower["Distance(m)"][i])
+                    / (choose_power[i + 1] - choose_power[i])
+                    * (value - choose_power[i])
+                    + df_txpower["Distance(m)"][i]
+                )
                 list_meter_values.append(meter_value)
 
                 if flag:
@@ -151,12 +144,10 @@ def signal_to_m_converter(dataframe, dbm="4(dBm)"):
 def extract_rssi_to_df(tracer_data_path):
     """
     Takes path from pickle file and create a df with a timeline and the rssi_arr values
-
     Parameters
     ----------
     tracer_data_path: str
         path to tracer data file
-
     Returns
     -------
     pandas.DataFrame
@@ -207,14 +198,12 @@ def extract_rssi_to_df(tracer_data_path):
 def add_flow_as_multi_index(tracer_df, beacon_flow):
     """
     Add flow id as second level column to tracer data
-
     Parameters
     ----------
     tracer_df: pandas.DataFrame
         tracer data
     beacon_flow: pandas.DataFrame
         the map of beacon and flow
-
     Returns
     -------
     pandas.DataFrame
@@ -263,17 +252,25 @@ def get_max_signal_values(tracer_df):
         tracer_df.idxmax(axis=1)
     )  # corresponding beacon id and region number of the max value
 
+    # max_signal = max(max_df["max_signal"]) - 30
+    # mean_signal = np.mean(max_df["max_signal"]) + 10
+
     location = []
     for row in max_df.itertuples():
-        if (
-            row[1] >= -65  # think about the value , possible or not ??
-        ):  # if the maximum value is over -65 (adjust the value?) then the tracer is located in the responding region
+        current_high = row[3]
+        if len(location) == 0:
+            location.append(0)
+        elif row[1] >= -65:
             location.append(row[3][0])
-        else:  # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
-            if len(location) == 0:
-                location.append(
-                    0
-                )  # set the first value manuell to zero to the wait not in use value
+        else:
+            if location[-1] == 1:
+                location.append(2)
+            elif location[-1] == 3:
+                location.append(4)
+            elif location[-1] == 6:
+                location.append(7)
+            elif location[-1] == 8:
+                location.append(9)
             else:
                 location.append(location[-1])
 
@@ -284,33 +281,33 @@ def get_max_signal_values(tracer_df):
     return max_df
 
 
-def get_min_distance_values(tracer_df):
-    min_df = pd.DataFrame(
-        data=list(tracer_df.min(axis=1)),
-        index=range(len(tracer_df)),
-        columns=["min_distance"],
-    )  # min values of each row in the original df
-    min_df["time"] = tracer_df.index
-    # corresponding beacon id and region number of the max value
-    min_df["region_beacon"] = list(tracer_df.idxmin(axis=1))
-    # max_df['location_of_tracer'] = 0 #zero as default
+# def get_min_distance_values(tracer_df):
+#     min_df = pd.DataFrame(
+#         data=list(tracer_df.min(axis=1)),
+#         index=range(len(tracer_df)),
+#         columns=["min_distance"],
+#     )  # min values of each row in the original df
+#     min_df["time"] = tracer_df.index
+#     # corresponding beacon id and region number of the max value
+#     min_df["region_beacon"] = list(tracer_df.idxmin(axis=1))
+#     # max_df['location_of_tracer'] = 0 #zero as default
 
-    location = []
-    for row in min_df.itertuples():
-        # if the maximum value is under -65 (adjust the value?) then the tracer is located in the respoing region
-        if row[1] < -65:
-            location.append(row[3][0])
-        # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
-        else:
-            location.append(location[-1])
+#     location = []
+#     for row in min_df.itertuples():
+#         # if the maximum value is under -65 (adjust the value?) then the tracer is located in the respoing region
+#         if row[1] < -65:
+#             location.append(row[3][0])
+#         # otherwise the tracer can be still allocated to the previous region (the region where it has been located before)
+#         else:
+#             location.append(location[-1])
 
-    min_df["location_of_tracer"] = location
-    min_df = min_df[["time", "min_distance", "region_beacon", "location_of_tracer"]]
-    min_df["location_number"] = min_df["location_of_tracer"].replace(
-        constant.regions, range(0, 10)
-    )
+#     min_df["location_of_tracer"] = location
+#     min_df = min_df[["time", "min_distance", "region_beacon", "location_of_tracer"]]
+#     min_df["location_number"] = min_df["location_of_tracer"].replace(
+#         constant.regions, range(0, 10)
+#     )
 
-    return min_df
+#     return min_df
 
 
 def order_list(df_location):
@@ -440,9 +437,10 @@ def time_analyse(max_signal_df, timestamp):
         subdataframe[i] = max_signal_df.loc[
             slicing_index[i] : (slicing_index[i + 1] - 1)
         ]
-        # filter the subdataframe to possible persons who enter the regions [0,1,3,5,6,8]
+        # filter the subdataframe to possible persons who enter the regions [0,1,3,5,6,8] + waiting
         if np.all(
-            np.unique(subdataframe[i]["location_of_tracer"]) == [0, 1, 3, 5, 6, 8]
+            np.unique(subdataframe[i]["location_of_tracer"])
+            == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         ):
             person_df.append(i)
             # filter the zero region values out
@@ -471,7 +469,7 @@ def time_analyse(max_signal_df, timestamp):
             + persondaytime_end.strftime("%H:%M:%S")
         )
         # calculate the time a person need for every region
-        region = [1, 3, 5, 6, 8]
+        region = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         row = 0
         temp = []
         dic_times = {}
@@ -487,6 +485,7 @@ def time_analyse(max_signal_df, timestamp):
                     row = row + 1
                 dic_times.setdefault(region_nr, []).append((temp[-1] - temp[0]) / 60)
                 temp = []
+
         #add a time key to the dict 
         dic_times["time"]=[persondaytime_begin.strftime("%H:%M:%S"),persondaytime_end.strftime("%H:%M:%S")]
         person_dict_list.append(dic_times)
@@ -499,7 +498,6 @@ def time_analyse(max_signal_df, timestamp):
                 continue
             else:
                 person[key] = sum(person[key])
-            
 
     return person_dict_list, persondaytime_list
 
@@ -507,12 +505,10 @@ def time_analyse(max_signal_df, timestamp):
 def extract_time_spent_in_region(person_dict_list):
     """
     Get the time spent in each region
-
     Parameters
     ----------
     person_dict_list: list
         regions people have passed during vaccination lifecycle
-
     Returns
     -------
     dict
@@ -521,66 +517,76 @@ def extract_time_spent_in_region(person_dict_list):
 
     # seperate the time values for each region
     region1_times = []
+    region2_times = []
     region3_times = []
+    region4_times = []
     region5_times = []
     region6_times = []
+    region7_times = []
     region8_times = []
+    region9_times = []
 
     for person in person_dict_list:
         for key in person:
             if key == 1:
                 region1_times.append(person[key])
+            elif key == 2:
+                region2_times.append(person[key])
             elif key == 3:
                 region3_times.append(person[key])
+            elif key == 4:
+                region4_times.append(person[key])
             elif key == 5:
                 region5_times.append(person[key])
             elif key == 6:
                 region6_times.append(person[key])
+            elif key == 7:
+                region7_times.append(person[key])
             elif key == 8:
                 region8_times.append(person[key])
+            elif key == 9:
+                region9_times.append(person[key])
             elif key =="time":
-                continue
+                continue                
             else:
                 raise RuntimeError(
-                    "There is region key different from [1, 3, 5, 6, 8]. Unknown region %d",
+                    "There is region key different from [1, 3, 5, 6, 8] and waiting rooms. Unknown region %d",
                     key,
                 )
 
     return {
         "region1": region1_times,
+        "region2": region2_times,
         "region3": region3_times,
+        "region4": region4_times,
         "region5": region5_times,
         "region6": region6_times,
+        "region7": region7_times,
         "region8": region8_times,
+        "region9": region9_times,
     }
 
 
 def is_second_shot(region_times, regions, thresholds, require_all=False):
     """
     Check if tracer is used for 2nd vaccination
-
     Parameters
     ----------
     region_times: dict
         the time spent in each region
-
     regions: list
         the regions will be validated
-
     thresholds: list
         the amount of time (in minutes) in a region which is the limit for 2nd vaccination
-
     require_all: boolean
         whether all regions must under threshold or not
-
     Returns
     -------
     boolean
-
     """
 
     region_times_df = pd.DataFrame.from_dict(region_times)
-    region_times_df.columns = [1, 3, 5, 6, 8]
+    region_times_df.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     selected_regions = region_times_df.loc[:, regions]
 
@@ -588,41 +594,40 @@ def is_second_shot(region_times, regions, thresholds, require_all=False):
 
     compared = selected_regions_median < thresholds
 
-    if (require_all):
+    if require_all:
         return compared.all()
     else:
         return compared.any()
 
 
+##### NOT WORKING AND REGION 9 IS MISSING
 def plot_time_analyse(region_times, filename, timestamp, timelist):
     """
     Visualize time spent in each region
-
     Parameters
     ----------
     region_times: dict
         the time spent in each region
-
     filename: string
         the name of dataset which is processed
-
     timestamp: string
         the time that dataset started recording
-
     timelist
-
     Returns
     -------
     void
-
     """
 
     ##Step 1)
     region1_times = region_times["region1"]
+    region2_times = region_times["region2"]
     region3_times = region_times["region3"]
+    region4_times = region_times["region4"]
     region5_times = region_times["region5"]
     region6_times = region_times["region6"]
+    region7_times = region_times["region7"]
     region8_times = region_times["region8"]
+    region9_times = region_times["region9"]
 
     ##Step2)
     # making a stack bar plot
@@ -632,33 +637,83 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
 
     # setting the bars for the plot
     ax.bar(labels, region1_times, width, label="region 1")
-    ax.bar(labels, region3_times, width, bottom=region1_times, label="region3")
+    ax.bar(labels, region2_times, width, bottom=region1_times, label="region2")
+    ax.bar(
+        labels,
+        region3_times,
+        width,
+        bottom=np.array(region1_times) + np.array(region2_times),
+        label="region3",
+    )
+    ax.bar(
+        labels,
+        region4_times,
+        width,
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times),
+        label="region4",
+    )
     ax.bar(
         labels,
         region5_times,
         width,
-        bottom=np.array(region3_times) + np.array(region1_times),
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times)
+        + np.array(region4_times),
         label="region5",
     )
     ax.bar(
         labels,
         region6_times,
         width,
-        bottom=np.array(region3_times)
-        + np.array(region1_times)
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times)
+        + np.array(region4_times)
         + np.array(region5_times),
         label="region6",
     )
     ax.bar(
         labels,
-        region8_times,
+        region7_times,
         width,
-        bottom=np.array(region3_times)
-        + np.array(region1_times)
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times)
+        + np.array(region4_times)
         + np.array(region5_times)
         + np.array(region6_times),
+        label="region7",
+    )
+    ax.bar(
+        labels,
+        region8_times,
+        width,
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times)
+        + np.array(region4_times)
+        + np.array(region5_times)
+        + np.array(region6_times)
+        + np.array(region7_times),
         label="region8",
     )
+    ax.bar(
+        labels,
+        region9_times,
+        width,
+        bottom=np.array(region1_times)
+        + np.array(region2_times)
+        + np.array(region3_times)
+        + np.array(region4_times)
+        + np.array(region5_times)
+        + np.array(region6_times)
+        + np.array(region7_times)
+        + np.array(region8_times),
+        label="region9",
+    )  
 
     ax.set_ylabel("time[min]")
     ax.set_xlabel("persons")
@@ -757,7 +812,7 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
     fig =plt.gcf()
     fig.set_size_inches(15,12)
     fig.savefig(filename.split(".")[0],dpi=300)
-    # plt.show()
+    #plt.show()
 
 
 def merge_timeline(tracer_df):
@@ -833,48 +888,83 @@ def add_timestamps_column(tracer_df, max_signal_df, start_timestamp):
     return tracer_with_timestamp, max_with_timestamp
 
 
+def add_single_timestamps_column(tracer_df, start_timestamp):
+    # adds timestamps to dfs for dashboard charts
+
+    timestamps_series = pd.Series(
+        pd.date_range(start_timestamp, periods=len(tracer_df), freq="0.1S")
+    )
+
+    tracer_with_timestamp = tracer_df.copy()
+    tracer_with_timestamp = tracer_with_timestamp.assign(
+        timestamp=timestamps_series.values
+    )
+
+    return tracer_with_timestamp
+
+
 def get_indvl_region_times(person_dict_list):
 
     region1_times = []
+    region2_times = []
     region3_times = []
+    region4_times = []
     region5_times = []
     region6_times = []
+    region7_times = []
     region8_times = []
+    region9_times = []
 
     for person in person_dict_list:
         for key in person:
             if key == 1:
                 region1_times.append(person[key])
+            elif key == 2:
+                region2_times.append(person[key])
             elif key == 3:
                 region3_times.append(person[key])
+            elif key == 4:
+                region4_times.append(person[key])
             elif key == 5:
                 region5_times.append(person[key])
             elif key == 6:
                 region6_times.append(person[key])
+            elif key == 7:
+                region7_times.append(person[key])
             elif key == 8:
                 region8_times.append(person[key])
+            elif key == 9:
+                region9_times.append(person[key])
             else:
-                print(
-                    "Error, something went wrong!\n",
-                    "Check Line sidefunction , time_analyse",
+                raise RuntimeError(
+                    "There is region key different from [1, 3, 5, 6, 8] and waiting rooms. Unknown region %d",
+                    key,
                 )
 
     region_time_df = pd.DataFrame(
         list(
             zip(
                 region1_times,
+                region2_times,
                 region3_times,
+                region4_times,
                 region5_times,
                 region6_times,
+                region7_times,
                 region8_times,
+                region9_times,
             )
         ),
         columns=[
             "region1_times",
+            "region2_times",
             "region3_times",
+            "region4_times",
             "region5_times",
             "region6_times",
+            "region7_times",
             "region8_times",
+            "region9_times",
         ],
     )
 
@@ -882,7 +972,7 @@ def get_indvl_region_times(person_dict_list):
 
 
 def timeplate_binder(key,timesection,Timeplate,person):
-    transfer_list= [0,0,0,1,0,2,3,0,4]
+    transfer_list= [0,0,1,2,3,4,5,6,7,8]
     Timeplate[transfer_list[key],timesection]=Timeplate[transfer_list[key],timesection] + person[key]
     return Timeplate
 
@@ -894,98 +984,98 @@ def timeplate_filler(person_dict_list,person_counter,pers_timesection_counter,Ti
             person_counter=person_counter+1
             pers_timesection_counter[0]=pers_timesection_counter[0]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,0,Timeplate,person)
                 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("09:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("08:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[1]=pers_timesection_counter[1]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,1,Timeplate,person)
         
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("10:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("09:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[2]=pers_timesection_counter[2]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,2,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("11:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("10:00:00","%H:%M:%S"):
             pers_timesection_counter[3]=pers_timesection_counter[3]+1
             pers_4=pers_4+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,3,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("12:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("11:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[4]=pers_timesection_counter[4]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,4,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("13:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("12:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[5]=pers_timesection_counter[5]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,5,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("14:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("13:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[6]=pers_timesection_counter[6]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,6,Timeplate,person)
         
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("15:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("14:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[7]=pers_timesection_counter[7]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,7,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("16:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("15:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[8]=pers_timesection_counter[8]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,8,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("17:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("16:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[9]=pers_timesection_counter[9]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,9,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("18:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("17:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[10]=pers_timesection_counter[10]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,10,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") < datetime.datetime.strptime("19:00:00","%H:%M:%S") and datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("18:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[11]=pers_timesection_counter[11]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,11,Timeplate,person)
 
         elif datetime.datetime.strptime(person["time"][0],"%H:%M:%S") >= datetime.datetime.strptime("19:00:00","%H:%M:%S"):
             person_counter=person_counter+1
             pers_timesection_counter[12]=pers_timesection_counter[12]+1
             for key in person:
-                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8:
+                if key == 1 or key == 3 or key == 5 or key == 6 or key == 8 or key == 2 or key == 4 or key == 7 or key == 9:
                     Timeplate=timeplate_binder(key,12,Timeplate,person)
 
     return person_counter,pers_timesection_counter,Timeplate
 
 
 def piechart(Timeplate):
-    labels = 'Pre-checkin', 'Checkin main', 'Doctor table', 'Vaccination' ,"Checkout"
+    labels = 'Pre-checkin', 'Waiting checking', 'Checkin main', 'Waiting I', 'Doctor table', 'Vaccination', 'Waiting II' ,"Checkout", 'Waiting III'
     sizes = np.sum(Timeplate,axis=1)
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
