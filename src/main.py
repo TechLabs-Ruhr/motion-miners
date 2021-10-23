@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-import waiting_side_functions as sf
+import side_functions as sf
 
 
 # ----------------------------------Userinput-------------------------------------------#
@@ -86,7 +86,7 @@ print("\nNumber of Person for every timesection:\n\n", pers_timesection_counter)
 
 sf.piechart(Timeplate)
 
-np.savetxt("allTimeplate.csv", Timeplate, delimiter=";", fmt="%1.2f")
+sf.csv_Timeplate_output(Timeplate,pers_timesection_counter)
 
 # ---------------------------------------------------------------------------------------#
 

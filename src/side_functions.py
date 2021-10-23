@@ -1083,3 +1083,38 @@ def piechart(Timeplate):
     ax1.axis('equal')
 
     plt.savefig("Number of person that are analysed")
+
+def csv_Timeplate_output(Timeplate,pers_timesection_counter):
+    Timeplate= np.vstack([Timeplate,pers_timesection_counter])
+
+    Timeplate_columns=[
+    "before 8",
+    "8 to 9",
+    "9 to 10",
+    "10 to 11",
+    "11 to 12",
+    "12 to 13",
+    "13 to 14",
+    "14 to 15",
+    "15 to 16",
+    "16 to 17",
+    "17 to 18",
+    "18 to 19",
+    "afer 19",
+    ]
+
+    Timeplate_rows=[
+    "Region 1: Pre-checkin",
+    "Region 2: Waiting Checkin",
+    "Region 3: Checkin main",
+    "Region 4: Waiting I",
+    "Region 5: Doctor table",
+    "Region 6: Vaccination",
+    "Region 7: Waiting II",
+    "Region 8: Checkout",
+    "Region 9: Waiting III",
+    "Person per section"
+    ]
+    Timeplate_df = pd.DataFrame(data=Timeplate, index= Timeplate_rows, columns= Timeplate_columns)
+    Timeplate_df.to_csv (r'Timeplate_dataframe.csv', index = True, header=True,sep=";",decimal=",")
+

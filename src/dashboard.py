@@ -510,7 +510,7 @@ expl = Div(
     Region 6: Vaccination <br>
     Region 7: Waiting II <br>
     Region 8: Checkout <br>
-    Region 8: Waiting III
+    Region 9: Waiting III
     """,
     width=500,
     height=100,
