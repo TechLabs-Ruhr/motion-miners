@@ -11,7 +11,7 @@ from bokeh.models.widgets import Div, Panel, Tabs
 from bokeh.palettes import Category10, Category20, Category20b, Category20c
 
 # imports for analysis
-import waiting_side_functions as sf
+import side_functions as sf
 import constant
 import pickle
 
