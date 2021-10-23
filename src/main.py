@@ -18,21 +18,24 @@ tracer_folder_path = (
 
 
 # ----------------------------------initial Values---------------------------------------#
+
 #allg
 Timeplate = np.zeros(shape=(9, 13))
 person_counter = 0
 pers_timesection_counter = [0] * 13
-second_shot_tracers = []
 
 #first
 Timeplate_1 = np.zeros(shape=(9, 13))
 person_counter_1 = 0
 pers_timesection_counter_1 = [0] * 13
+first_shot_tracers = []
 
 #second
 Timeplate_2 = np.zeros(shape=(9, 13))
 person_counter_2 = 0
 pers_timesection_counter_2 = [0] * 13
+second_shot_tracers = []
+
 # ---------------------------------------------------------------------------------------#
 
 
@@ -82,6 +85,7 @@ for filename in os.listdir(tracer_folder_path):
     )
 
     else:
+        first_shot_tracers.append(filename)
         person_counter_1, pers_timesection_counter_1, Timeplate_1 = sf.timeplate_filler(
         person_dict_list, person_counter_1, pers_timesection_counter_1, Timeplate_1
     )
