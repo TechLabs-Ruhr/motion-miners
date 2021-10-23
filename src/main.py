@@ -18,11 +18,21 @@ tracer_folder_path = (
 
 
 # ----------------------------------initial Values---------------------------------------#
-
+#allg
 Timeplate = np.zeros(shape=(9, 13))
 person_counter = 0
 pers_timesection_counter = [0] * 13
 second_shot_tracers = []
+
+#first
+Timeplate_1 = np.zeros(shape=(9, 13))
+person_counter_1 = 0
+pers_timesection_counter_1 = [0] * 13
+
+#second
+Timeplate_2 = np.zeros(shape=(9, 13))
+person_counter_2 = 0
+pers_timesection_counter_2 = [0] * 13
 # ---------------------------------------------------------------------------------------#
 
 
@@ -67,6 +77,15 @@ for filename in os.listdir(tracer_folder_path):
 
     if sf.is_second_shot(region_times, [3], [5]):
         second_shot_tracers.append(filename)
+        person_counter_2, pers_timesection_counter_2, Timeplate_2 = sf.timeplate_filler(
+        person_dict_list, person_counter_2, pers_timesection_counter_2, Timeplate_2
+    )
+
+    else:
+        person_counter_1, pers_timesection_counter_1, Timeplate_1 = sf.timeplate_filler(
+        person_dict_list, person_counter_1, pers_timesection_counter_1, Timeplate_1
+    )
+
 
     person_counter, pers_timesection_counter, Timeplate = sf.timeplate_filler(
         person_dict_list, person_counter, pers_timesection_counter, Timeplate
@@ -86,8 +105,9 @@ print("\nNumber of Person for every timesection:\n\n", pers_timesection_counter)
 
 sf.piechart(Timeplate)
 
-sf.csv_Timeplate_output(Timeplate,pers_timesection_counter)
-
+sf.csv_Timeplate_output(Timeplate,pers_timesection_counter,"FullTimeplate.csv")
+sf.csv_Timeplate_output(Timeplate_1,pers_timesection_counter_1,"Timeplate_1.csv")
+sf.csv_Timeplate_output(Timeplate_2,pers_timesection_counter_2,"Timeplate_2.csv")
 # ---------------------------------------------------------------------------------------#
 
 

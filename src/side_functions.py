@@ -1162,7 +1162,7 @@ def piechart(Timeplate):
 
     plt.savefig("Number of person that are analysed")
 
-def csv_Timeplate_output(Timeplate,pers_timesection_counter):
+def csv_Timeplate_output(Timeplate,pers_timesection_counter,filename):
     Timeplate= np.vstack([Timeplate,pers_timesection_counter])
 
     Timeplate_columns=[
@@ -1194,5 +1194,5 @@ def csv_Timeplate_output(Timeplate,pers_timesection_counter):
     "Person per section"
     ]
     Timeplate_df = pd.DataFrame(data=Timeplate, index= Timeplate_rows, columns= Timeplate_columns)
-    Timeplate_df.to_csv (r'Timeplate_dataframe.csv', index = True, header=True,sep=";",decimal=",")
+    Timeplate_df.to_csv (filename, index = True, header=True,sep=";",decimal=",")
 
