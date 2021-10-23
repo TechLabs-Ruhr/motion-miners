@@ -889,8 +889,8 @@ def plot_time_analyse(region_times, filename, timestamp, timelist):
 
     fig =plt.gcf()
     fig.set_size_inches(15,12)
-    # fig.savefig(filename.split(".")[0],dpi=300)
-    plt.show()
+    fig.savefig(filename.split(".")[0],dpi=300)
+    # plt.show()
 
 
 def merge_timeline(tracer_df):

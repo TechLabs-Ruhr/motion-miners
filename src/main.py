@@ -11,8 +11,11 @@ import side_functions as sf
 
 # change the path to where you stored tracerdata, and layoutfile on your computer
 layout_path = r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motion-miners\data\layout.json"
+# tracer_folder_path = (
+#     r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motionminer_testdata_temp"
+# )
 tracer_folder_path = (
-    r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\motionminer_testdata_temp"
+    r"C:\Users\RR\Documents\TechLabs\100_final_Code_Folder\Full_DATA"
 )
 # ---------------------------------------------------------------------------------------#
 
@@ -83,7 +86,6 @@ for filename in os.listdir(tracer_folder_path):
         person_counter_2, pers_timesection_counter_2, Timeplate_2 = sf.timeplate_filler(
         person_dict_list, person_counter_2, pers_timesection_counter_2, Timeplate_2
     )
-
     else:
         first_shot_tracers.append(filename)
         person_counter_1, pers_timesection_counter_1, Timeplate_1 = sf.timeplate_filler(
@@ -97,6 +99,9 @@ for filename in os.listdir(tracer_folder_path):
 
     sf.plot_time_analyse(region_times, filename, time, timelist)
 
+
+print("\n------------\n")
+print("\nTracers for first shot\n\n", first_shot_tracers)
 
 print("\n------------\n")
 print("\nTracers for second shot\n\n", second_shot_tracers)
