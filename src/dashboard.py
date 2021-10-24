@@ -5,7 +5,7 @@ import numpy as np
 from bokeh.io import show, curdoc
 from bokeh.plotting import figure, output_file
 from bokeh.layouts import row, column
-from bokeh.models import Select, ColumnDataSource, LabelSet
+from bokeh.models import Select, ColumnDataSource, LabelSet, Legend
 from bokeh.themes import built_in_themes
 from bokeh.models.widgets import Div, Panel, Tabs
 from bokeh.palettes import Category10, Category20, Category20b, Category20c
@@ -22,7 +22,11 @@ curdoc().theme = "dark_minimal"
 # datafiles
 layout_path = r"layout.json"
 tracer_path = r"data\MMTS_00103_1620884512146.bin_beacon_data.pickle"
-img_path = r"layout.png"
+img_path = r"map_region.png"
+###ADD path of pie chart pic
+# pie_path = r"PIE_CHART.PNG"
+
+# total_figure_width = 1200
 # --------------------------------------------------------------------------
 
 # ------------------------required data------------------------------
@@ -61,17 +65,36 @@ region_times_df = sf.get_indvl_region_times(person_dict_list)
 # ----------------------------------------------------------------------
 
 
-# ----------------------------Image--------------------------------------
-x_range = (0, 1)  # could be anything - e.g.(0,1)
+# ----------------------------Map---------------------------------------
+x_range = (0, 1)
 y_range = (0, 1)
 layout_image = figure(
     x_range=x_range,
     y_range=y_range,
     title="Map and flow of the vaccination process",
-    plot_width=500,
-    plot_height=500,
+    plot_width=450,
+    plot_height=450,
 )
 layout_image.image_url(
+    url=[img_path],
+    x=x_range[0],
+    y=y_range[1],
+    w=x_range[1] - x_range[0],
+    h=y_range[1] - y_range[0],
+)
+# -----------------------------------------------------------------------
+
+# ----------------------------Pie chart----------------------------------
+x_range = (0, 1)
+y_range = (0, 1)
+layout_pie_chart = figure(
+    x_range=x_range,
+    y_range=y_range,
+    title="Key facts in a pie chart (percentage of time spent in the regions)",
+    plot_width=450,
+    plot_height=450,
+)
+layout_pie_chart.image_url(
     url=[img_path],
     x=x_range[0],
     y=y_range[1],
@@ -112,7 +135,7 @@ new_region_times_df["num_people"] = list(
 )
 new_source = ColumnDataSource(round(new_region_times_df, 2))
 
-reg1 = figure(plot_width=400, plot_height=420, title="Region 1")
+reg1 = figure(plot_width=1200, plot_height=420, title="Region 1")
 reg1.yaxis.axis_label = "time in minutes"
 reg1.vbar(
     x=[1, 2, 3, 4, 5, 6],
@@ -141,7 +164,7 @@ reg1.add_layout(label1)
 tab1 = Panel(child=reg1, title="Region 1")
 
 
-reg2 = figure(plot_width=400, plot_height=420,)
+reg2 = figure(plot_width=1200, plot_height=420,)
 reg2.yaxis.axis_label = "time in minutes"
 reg2.vbar(
     x=[1, 2, 3, 4, 5, 6],
@@ -170,14 +193,14 @@ reg2.add_layout(label2)
 tab2 = Panel(child=reg2, title="Region 2")
 
 
-reg3 = figure(plot_width=400, plot_height=420,)
+reg3 = figure(plot_width=1200, plot_height=420,)
 reg3.yaxis.axis_label = "time in minutes"
 reg3.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region3_times"],
-    fill_color="gold",
-    line_color="gold",
+    fill_color="slateblue",
+    line_color="slateblue",
     alpha=0.9,
 )
 label3 = LabelSet(
@@ -198,14 +221,14 @@ reg3.add_layout(label3)
 
 tab3 = Panel(child=reg3, title="Region 3")
 
-reg4 = figure(plot_width=400, plot_height=420,)
+reg4 = figure(plot_width=1200, plot_height=420,)
 reg4.yaxis.axis_label = "time in minutes"
 reg4.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region4_times"],
-    fill_color="gold",
-    line_color="gold",
+    fill_color="forestgreen",
+    line_color="forestgreen",
     alpha=0.9,
 )
 label4 = LabelSet(
@@ -227,14 +250,14 @@ reg4.add_layout(label4)
 tab4 = Panel(child=reg4, title="Region 4")
 
 
-reg5 = figure(plot_width=400, plot_height=420,)
+reg5 = figure(plot_width=1200, plot_height=420,)
 reg5.yaxis.axis_label = "time in minutes"
 reg5.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region5_times"],
-    fill_color="slateblue",
-    line_color="slateblue",
+    fill_color="darkturquoise",
+    line_color="darkturquoise",
     alpha=0.9,
 )
 label5 = LabelSet(
@@ -256,14 +279,14 @@ reg5.add_layout(label5)
 tab5 = Panel(child=reg5, title="Region 5")
 
 
-reg6 = figure(plot_width=400, plot_height=420,)
+reg6 = figure(plot_width=1200, plot_height=420,)
 reg6.yaxis.axis_label = "time in minutes"
 reg6.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region6_times"],
-    fill_color="forestgreen",
-    line_color="forestgreen",
+    fill_color="maroon",
+    line_color="maroon",
     alpha=0.9,
 )
 label6 = LabelSet(
@@ -285,14 +308,14 @@ reg6.add_layout(label6)
 tab6 = Panel(child=reg6, title="Region 6")
 
 
-reg7 = figure(plot_width=400, plot_height=420,)
+reg7 = figure(plot_width=1200, plot_height=420,)
 reg7.yaxis.axis_label = "time in minutes"
 reg7.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region7_times"],
-    fill_color="forestgreen",
-    line_color="forestgreen",
+    fill_color="hotpink",
+    line_color="hotpink",
     alpha=0.9,
 )
 label7 = LabelSet(
@@ -314,14 +337,14 @@ reg7.add_layout(label7)
 tab7 = Panel(child=reg7, title="Region 7")
 
 
-reg8 = figure(plot_width=400, plot_height=420,)
+reg8 = figure(plot_width=1200, plot_height=420,)
 reg8.yaxis.axis_label = "time in minutes"
 reg8.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region8_times"],
-    fill_color="darkturquoise",
-    line_color="darkturquoise",
+    fill_color="dimgray",
+    line_color="dimgray",
     alpha=0.9,
 )
 label8 = LabelSet(
@@ -343,14 +366,14 @@ reg8.add_layout(label8)
 tab8 = Panel(child=reg8, title="Region 8")
 
 
-reg9 = figure(plot_width=400, plot_height=420,)
+reg9 = figure(plot_width=1200, plot_height=420,)
 reg9.yaxis.axis_label = "time in minutes"
 reg9.vbar(
     x=[1, 2, 3, 4, 5, 6],
     width=0.9,
     top=region_times_df["region9_times"],
-    fill_color="darkturquoise",
-    line_color="darkturquoise",
+    fill_color="mediumblue",
+    line_color="mediumblue",
     alpha=0.9,
 )
 label9 = LabelSet(
@@ -411,16 +434,16 @@ cols = [
     "slateblue",
     "forestgreen",
     "darkturquoise",
-    "black",
-    "navy",
-    "silver",
-    "yellow",
+    "maroon",
+    "hotpink",
+    "dimgray",
+    "mediumblue",
 ]
 
 stacked_bar = figure(
     x_range=timelist,
     title="Amount of time for the vaccination process",
-    plot_width=800,
+    plot_width=1200,
     plot_height=450,
 )
 stacked_bar.vbar_stack(
@@ -452,6 +475,9 @@ labels = LabelSet(
     source=source,
     text_align="center",
 )
+# legend = Legend(items=regions, location="center")
+
+# stacked_bar.add_layout(legend, "right")
 stacked_bar.add_layout(labels)
 # ------------------------------------------------------------------------------
 
@@ -460,7 +486,12 @@ stacked_bar.add_layout(labels)
 select_region = constant.regions[1]
 beacons_in_region = constant.beacons_each_region_NUM[select_region]
 
-circle_plot = figure(width=1200, height=450, title="Region 1", x_axis_type="datetime")
+circle_plot = figure(
+    width=1200,
+    height=450,
+    title="Distribution of the signal strength of the beacons on region 1 over time",
+    x_axis_type="datetime",
+)
 color_pack = 10
 color_num = 0
 
@@ -481,39 +512,39 @@ circle_plot.xaxis.axis_label = "Time"
 # ------------------------------------------------------------------------------
 
 
-# ----------------------------------Drop bar (bar + line)-----------------------
-# @TODO add callback!
-drop_bar_barline = Select(
-    title="Dimension",
-    options=[("1st vaccination"), ("2nd vaccination")],
-    value="1st vaccination",
-)
-# ------------------------------------------------------------------------------
+# # ----------------------------------Drop bar (bar + line)-----------------------
+# # @TODO add callback!
+# drop_bar_barline = Select(
+#     title="Dimension",
+#     options=[("1st vaccination"), ("2nd vaccination")],
+#     value="1st vaccination",
+# )
+# # ------------------------------------------------------------------------------
 
-# ----------------------------------Drop bar (circle)---------------------------
-# @TODO add callback!
-drop_bar_circle = Select(
-    title="Select region",
-    options=[("Region 1"), ("Region 3"), ("Region 5"), ("Region 6"), ("Region 8"),],
-    value="Region 1",
-)
-# ------------------------------------------------------------------------------
+# # ----------------------------------Drop bar (circle)---------------------------
+# # @TODO add callback!
+# drop_bar_circle = Select(
+#     title="Select region",
+#     options=[("Region 1"), ("Region 3"), ("Region 5"), ("Region 6"), ("Region 8"),],
+#     value="Region 1",
+# )
+# # ------------------------------------------------------------------------------
 
 # ----------------------------------Text element--------------------------------
-expl = Div(
+region_desc = Div(
     text="""<b>Description</b> <br> 
-    Region 1: Pre-checkin <br>
-    Region 2: Waiting Checkin <br>
-    Region 3: Checkin main <br>
-    Region 4: Waiting I <br>
-    Region 5: Doctor table <br>
-    Region 6: Vaccination <br>
-    Region 7: Waiting II <br>
-    Region 8: Checkout <br>
-    Region 9: Waiting III
+    Region 1: Pre-checkin --> inital entrance check <br>
+    Region 2: Waiting Checkin --> queueing before checkin <br>
+    Region 3: Checkin main --> paperwork <br>
+    Region 4: Waiting I --> waiting and filling out papers <br>
+    Region 5: Doctor table --> short informative talk <br>
+    Region 6: Vaccination --> shot <br>
+    Region 7: Waiting II --> queueing before checkout <br>
+    Region 8: Checkout --> final paper scan <br>
+    Region 9: Waiting III --> waint 15 minutes and return tracer
     """,
-    width=500,
-    height=100,
+    width=300,
+    height=400,
 )
 
 addition = Div(
@@ -522,7 +553,6 @@ addition = Div(
     Waiting time for each region: ... <br>
     First vaccination: .... <br>
     Second vaccination: .... <br>
-    <I> In a table? </I>
     """,
     width=500,
     height=100,
@@ -534,12 +564,12 @@ title = Div(text='<h1 style="text-align: center">Demo dashboard</h1>')
 # layout_dash = column(title, line_chart, row(bar_chart, tabs))
 layout_dash = column(
     title,
-    row(layout_image, addition),
-    expl,
-    drop_bar_barline,
+    row(layout_image, region_desc, layout_pie_chart),
+    # drop_bar_barline,
     line_chart,
-    row(stacked_bar, tabs),
-    drop_bar_circle,
+    stacked_bar,
+    tabs,
+    # drop_bar_circle,
     circle_plot,
 )
 
