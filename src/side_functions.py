@@ -1013,6 +1013,8 @@ def get_indvl_region_times(person_dict_list):
                 region8_times.append(person[key])
             elif key == 9:
                 region9_times.append(person[key])
+            elif key == "time":
+                continue                
             else:
                 raise RuntimeError(
                     "There is region key different from [1, 3, 5, 6, 8] and waiting rooms. Unknown region %d",
