@@ -23,8 +23,7 @@ curdoc().theme = "dark_minimal"
 layout_path = r"layout.json"
 tracer_path = r"data\MMTS_00103_1620884512146.bin_beacon_data.pickle"
 img_path = r"map_region.png"
-###ADD path of pie chart pic
-# pie_path = r"PIE_CHART.PNG"
+pie_path = r"Number of person that are analysed.png"
 
 # total_figure_width = 1200
 # --------------------------------------------------------------------------
@@ -95,7 +94,7 @@ layout_pie_chart = figure(
     plot_height=450,
 )
 layout_pie_chart.image_url(
-    url=[img_path],
+    url=[pie_path],
     x=x_range[0],
     y=y_range[1],
     w=x_range[1] - x_range[0],
