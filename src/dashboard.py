@@ -89,7 +89,7 @@ y_range = (0, 1)
 layout_pie_chart = figure(
     x_range=x_range,
     y_range=y_range,
-    title="Key facts in a pie chart (percentage of time spent in the regions)",
+    title="Time spent in each region",
     plot_width=450,
     plot_height=450,
 )
